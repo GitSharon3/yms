@@ -1,0 +1,154 @@
+#root {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+ .app {
+   display: flex;
+   flex-direction: column;
+   gap: 1.25rem;
+ }
+ 
+ .header {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+ }
+ 
+ .title {
+   margin: 0;
+   font-size: 2rem;
+ }
+ 
+ .subtitle {
+   margin-top: 0.25rem;
+   color: rgba(255, 255, 255, 0.65);
+   font-size: 0.9rem;
+ }
+ 
+ .panel {
+   border: 1px solid rgba(255, 255, 255, 0.12);
+   border-radius: 12px;
+   padding: 1rem;
+   background: rgba(255, 255, 255, 0.03);
+ }
+ 
+ .panelHeader {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 1rem;
+ }
+ 
+ .panelTitle {
+   margin: 0 0 0.75rem 0;
+   font-size: 1.2rem;
+ }
+ 
+ .formRow {
+   display: grid;
+   grid-template-columns: 1fr 1fr auto;
+   gap: 0.75rem;
+   align-items: end;
+ }
+ 
+ .label {
+   display: flex;
+   flex-direction: column;
+   gap: 0.35rem;
+   font-size: 0.9rem;
+ }
+ 
+ .input {
+   padding: 0.6rem 0.75rem;
+   border-radius: 10px;
+   border: 1px solid rgba(255, 255, 255, 0.14);
+   background: rgba(0, 0, 0, 0.25);
+   color: inherit;
+ }
+ 
+ .button {
+   padding: 0.65rem 1rem;
+   border-radius: 10px;
+   border: 1px solid rgba(255, 255, 255, 0.14);
+   background: rgba(100, 108, 255, 0.18);
+ }
+ 
+ .button.secondary {
+   background: rgba(255, 255, 255, 0.06);
+ }
+ 
+ .table {
+   display: flex;
+   flex-direction: column;
+   gap: 0.25rem;
+ }
+ 
+ .row {
+   display: grid;
+   grid-template-columns: 1fr 1fr 1fr;
+   gap: 0.75rem;
+   padding: 0.6rem 0.5rem;
+   border-radius: 10px;
+ }
+ 
+ .row.head {
+   font-weight: 600;
+   color: rgba(255, 255, 255, 0.75);
+ }
+ 
+ .row:not(.head) {
+   border: 1px solid rgba(255, 255, 255, 0.08);
+ }
+ 
+ .cell {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+ }
+ 
+ .strong {
+   font-weight: 600;
+ }
+ 
+ .muted {
+   color: rgba(255, 255, 255, 0.65);
+ }
+ 
+ .error {
+   margin: 0.5rem 0;
+   padding: 0.75rem;
+   border-radius: 10px;
+   border: 1px solid rgba(255, 80, 80, 0.35);
+   background: rgba(255, 80, 80, 0.1);
+ }
+
+ @media (prefers-color-scheme: light) {
+   .subtitle {
+     color: rgba(33, 53, 71, 0.7);
+   }
+ 
+   .panel {
+     border-color: rgba(33, 53, 71, 0.2);
+     background: rgba(33, 53, 71, 0.03);
+   }
+ 
+   .input {
+     border-color: rgba(33, 53, 71, 0.2);
+     background: rgba(255, 255, 255, 0.7);
+   }
+ 
+   .muted {
+     color: rgba(33, 53, 71, 0.7);
+   }
+ 
+   .row.head {
+     color: rgba(33, 53, 71, 0.7);
+   }
+ 
+   .row:not(.head) {
+     border-color: rgba(33, 53, 71, 0.12);
+   }
+ }

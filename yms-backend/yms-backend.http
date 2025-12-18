@@ -1,0 +1,6 @@
+@yms_backend_HostAddress = http://localhost:5113
+
+GET {{yms_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
