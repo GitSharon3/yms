@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "JPvCpKemFFY=",
+  "success": true,
+  "projectFilePath": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/Yms.Core.csproj",
+  "expectedPackageFiles": [
+    "/Users/sharonkadariya/.nuget/packages/microsoft.netcore.app.ref/8.0.22/microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
+    "/Users/sharonkadariya/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.22/microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512"
+  ],
+  "logs": []
+}

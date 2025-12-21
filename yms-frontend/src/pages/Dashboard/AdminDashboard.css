@@ -1,139 +1,562 @@
-.adminShell {
+.ymsShell {
   min-height: 100vh;
-  background: #0b1220;
-  color: rgba(255, 255, 255, 0.92);
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  background: #f4f6fb;
+  color: #0f172a;
 }
 
-.adminTopbar {
+.ymsSidebar {
+  background: #ffffff;
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.ymsBrand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  gap: 0.75rem;
+  padding: 0.25rem 0.4rem;
 }
 
-.adminTitle {
-  font-size: 1.25rem;
+.ymsBrandMark {
+  height: 36px;
+  width: 36px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 800;
 }
 
-.adminSubtitle {
-  margin-top: 0.25rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.62);
+.ymsBrandTitle {
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
 }
 
-.adminContent {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+.ymsBrandSub {
+  margin-top: 0.05rem;
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.55);
 }
 
-.panel {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.panelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.panelTitle {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.05rem;
-}
-
-.formRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 0.75rem;
-  align-items: end;
-}
-
-.label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.9rem;
-}
-
-.input {
-  padding: 0.6rem 0.75rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.25);
-  color: inherit;
-}
-
-.btn {
-  padding: 0.65rem 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.06);
-  color: inherit;
-  cursor: pointer;
-}
-
-.btn.primary {
-  background: rgba(59, 130, 246, 0.22);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.table {
+.ymsNav {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.75rem;
-  padding: 0.6rem 0.5rem;
-  border-radius: 10px;
+.ymsNavItem {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  text-decoration: none;
+  color: rgba(15, 23, 42, 0.75);
 }
 
-.row.head {
+.ymsNavItem:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.ymsNavItem.active {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+}
+
+.ymsNavIcon {
+  color: currentColor;
+  display: inline-flex;
+}
+
+.ymsNavLabel {
+  font-size: 0.95rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
 }
 
-.row:not(.head) {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.ymsSidebarFooter {
+  margin-top: auto;
+  padding: 0.75rem 0.75rem 0.25rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-.cell {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.ymsSidebarHint {
+  font-size: 0.82rem;
+  color: rgba(15, 23, 42, 0.55);
 }
 
-.strong {
+.ymsMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ymsTopbar {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.4rem;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.ymsTopbarTitle {
+  font-weight: 800;
+}
+
+.ymsTopbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.ymsUser {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.ymsUserAvatar {
+  height: 34px;
+  width: 34px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.ymsUserMeta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.ymsUserName {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.ymsUserRole {
+  font-size: 0.8rem;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.ymsLogout {
+  height: 38px;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.8);
   font-weight: 700;
 }
 
-.muted {
-  color: rgba(255, 255, 255, 0.62);
+.ymsLogout:hover {
+  background: rgba(15, 23, 42, 0.03);
 }
 
-.error {
-  margin: 0.5rem 0;
-  padding: 0.75rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 80, 80, 0.35);
-  background: rgba(255, 80, 80, 0.1);
+.ymsContent {
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.ymsPage {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ymsPageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ymsPageTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.ymsPageSub {
+  margin-top: 0.25rem;
+  color: rgba(15, 23, 42, 0.6);
+  font-size: 0.92rem;
+}
+
+.ymsLoading {
+  padding: 1rem;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+.ymsError {
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.dashCard {
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  box-shadow: 0 16px 50px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.dashCardHeader {
+  padding: 1rem 1rem 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dashCardTitle {
+  font-weight: 800;
+}
+
+.dashCardDesc {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.dashCardBody {
+  padding: 0.9rem 1rem 1rem;
+}
+
+.statCard {
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  padding: 0.95rem 1rem;
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.6);
+  font-weight: 600;
+}
+
+.statValue {
+  margin-top: 0.35rem;
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.statSubtitle {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.donutWrap {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.donutCenter {
+  font-size: 22px;
+  font-weight: 900;
+  fill: rgba(15, 23, 42, 0.85);
+}
+
+.donutCenterSub {
+  font-size: 12px;
+  fill: rgba(15, 23, 42, 0.55);
+}
+
+.donutLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.legendRow {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.legendDot {
+  height: 10px;
+  width: 10px;
+  border-radius: 999px;
+}
+
+.legendValue {
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.85);
+}
+
+.barGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.barCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: 100%;
+}
+
+.barTrack {
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.05);
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.barFill {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.barMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.barLabel {
+  font-size: 0.8rem;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.barValue {
+  font-weight: 800;
+}
+
+.tableWrap {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.tableHeader,
+.tableRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 0.9fr 1.2fr 1.2fr;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  align-items: center;
+}
+
+.tableHeader {
+  background: rgba(15, 23, 42, 0.03);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+.tableRow {
+  background: #ffffff;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 0.92rem;
+}
+
+.cellStrong {
+  font-weight: 800;
+}
+
+.tableEmpty {
+  padding: 1rem;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.badge.success {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.25);
+  color: #15803d;
+}
+
+.badge.warn {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #b45309;
+}
+
+.badge.info {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.25);
+  color: #1d4ed8;
+}
+
+.badge.danger {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #b91c1c;
+}
+
+.badge.neutral {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.yardMap {
+  width: 100%;
+}
+
+.yardMapSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.apptList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.apptRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.8rem;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.apptTitle {
+  font-weight: 800;
+}
+
+.apptSub {
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.apptDot {
+  margin: 0 0.35rem;
+  color: rgba(15, 23, 42, 0.35);
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.activityRow {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.activityIcon {
+  height: 10px;
+  width: 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.7);
+}
+
+.activityTitle {
+  font-weight: 800;
+}
+
+.activityDesc {
+  margin-top: 0.15rem;
+  color: rgba(15, 23, 42, 0.6);
+  font-size: 0.9rem;
+}
+
+.activityMeta {
+  font-size: 0.82rem;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.emptyState {
+  padding: 0.9rem;
+  border-radius: 14px;
+  border: 1px dashed rgba(15, 23, 42, 0.18);
+  color: rgba(15, 23, 42, 0.55);
+}
+
+@media (max-width: 1100px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .ymsShell {
+    grid-template-columns: 1fr;
+  }
+
+  .ymsSidebar {
+    display: none;
+  }
 }

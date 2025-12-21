@@ -1,118 +1,125 @@
-import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
+import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 
-import { createYard, getYards, type Yard } from '../../api/yards';
 import { useAuth } from '../../auth/AuthContext';
+import { OverviewDashboard } from './OverviewDashboard';
+import { PlaceholderPage } from './PlaceholderPage';
+import {
+  IconActivity,
+  IconCalendar,
+  IconDock,
+  IconGate,
+  IconMap,
+  IconOverview,
+  IconSettings,
+  IconTruck,
+  IconUsers,
+} from './components/Icons';
+
 import './AdminDashboard.css';
 
+type NavItem = {
+  to: string;
+  label: string;
+  icon: ReactNode;
+};
+
+const NAV: NavItem[] = [
+  { to: '', label: 'Overview', icon: <IconOverview /> },
+  { to: 'yard-map', label: 'Yard Map', icon: <IconMap /> },
+  { to: 'vehicles', label: 'Vehicles', icon: <IconTruck /> },
+  { to: 'gate-operations', label: 'Gate Operations', icon: <IconGate /> },
+  { to: 'dock-management', label: 'Dock Management', icon: <IconDock /> },
+  { to: 'appointments', label: 'Appointments', icon: <IconCalendar /> },
+  { to: 'users', label: 'User Management', icon: <IconUsers /> },
+  { to: 'activities', label: 'Activities', icon: <IconActivity /> },
+  { to: 'settings', label: 'Settings', icon: <IconSettings /> },
+];
+
+function initials(name: string) {
+  const parts = name
+    .split(/\s+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  const first = parts[0]?.[0] ?? 'U';
+  const last = parts.length > 1 ? parts[parts.length - 1]?.[0] : '';
+  return (first + last).toUpperCase();
+}
+
 export default function AdminDashboard() {
-  const apiBase = useMemo(() => import.meta.env.VITE_API_BASE_URL as string | undefined, []);
-  const { admin, logout } = useAuth();
-
-  const [yards, setYards] = useState<Yard[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  async function refresh() {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getYards();
-      setYards(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load yards');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void refresh();
-  }, []);
-
-  async function onCreate() {
-    if (!name.trim()) return;
-
-    setSaving(true);
-    setError(null);
-    try {
-      await createYard({ name: name.trim(), address: address.trim() ? address.trim() : null });
-      setName('');
-      setAddress('');
-      await refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create yard');
-    } finally {
-      setSaving(false);
-    }
-  }
+  const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '(same origin)';
+  const { user, logout } = useAuth();
 
   return (
-    <div className="adminShell">
-      <header className="adminTopbar">
-        <div>
-          <div className="adminTitle">Admin Dashboard</div>
-          <div className="adminSubtitle">
-            Signed in as <span className="strong">{admin?.username}</span> ({admin?.email}) • Backend: {apiBase ?? '(same origin)'}
+    <div className="ymsShell">
+      <aside className="ymsSidebar">
+        <div className="ymsBrand">
+          <div className="ymsBrandMark">Y</div>
+          <div>
+            <div className="ymsBrandTitle">YardManagement</div>
+            <div className="ymsBrandSub">System</div>
           </div>
         </div>
-        <button className="btn" onClick={logout}>
-          Logout
-        </button>
-      </header>
 
-      <main className="adminContent">
-        <section className="panel">
-          <h2 className="panelTitle">Create Yard</h2>
-          <div className="formRow">
-            <label className="label">
-              Name
-              <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
-            </label>
-            <label className="label">
-              Address
-              <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} />
-            </label>
-            <button className="btn primary" disabled={saving || !name.trim()} onClick={() => void onCreate()}>
-              {saving ? 'Saving…' : 'Create'}
-            </button>
-          </div>
-        </section>
+        <nav className="ymsNav">
+          {NAV.map((item) => (
+            <NavLink
+              key={item.label}
+              to={item.to}
+              end={item.to === ''}
+              className={({ isActive }) => (isActive ? 'ymsNavItem active' : 'ymsNavItem')}
+            >
+              <span className="ymsNavIcon" aria-hidden>
+                {item.icon}
+              </span>
+              <span className="ymsNavLabel">{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
-        <section className="panel">
-          <div className="panelHeader">
-            <h2 className="panelTitle">Yards</h2>
-            <button className="btn" onClick={() => void refresh()} disabled={loading}>
-              Refresh
-            </button>
+        <div className="ymsSidebarFooter">
+          <div className="ymsSidebarHint">Backend: {apiBase}</div>
+        </div>
+      </aside>
+
+      <div className="ymsMain">
+        <header className="ymsTopbar">
+          <div className="ymsTopbarLeft">
+            <div className="ymsTopbarTitle">Yard Management System</div>
           </div>
 
-          {error && <div className="error">{error}</div>}
-          {loading ? (
-            <div className="muted">Loading…</div>
-          ) : yards.length === 0 ? (
-            <div className="muted">No yards yet.</div>
-          ) : (
-            <div className="table">
-              <div className="row head">
-                <div>Name</div>
-                <div>Address</div>
-                <div>Created</div>
+          <div className="ymsTopbarRight">
+            <div className="ymsUser">
+              <div className="ymsUserAvatar" aria-hidden>
+                {initials(user?.username ?? 'User')}
               </div>
-              {yards.map((y) => (
-                <div className="row" key={y.id}>
-                  <div className="cell strong">{y.name}</div>
-                  <div className="cell">{y.address ?? '-'}</div>
-                  <div className="cell muted">{new Date(y.createdAtUtc).toLocaleString()}</div>
-                </div>
-              ))}
+              <div className="ymsUserMeta">
+                <div className="ymsUserName">{user?.username ?? 'User'}</div>
+                <div className="ymsUserRole">{user?.role ?? ''}</div>
+              </div>
             </div>
-          )}
-        </section>
-      </main>
+            <button className="ymsLogout" onClick={logout}>
+              Logout
+            </button>
+          </div>
+        </header>
+
+        <main className="ymsContent">
+          <Routes>
+            <Route index element={<OverviewDashboard />} />
+            <Route path="yard-map" element={<PlaceholderPage title="Yard Map" />} />
+            <Route path="vehicles" element={<PlaceholderPage title="Vehicles" />} />
+            <Route path="gate-operations" element={<PlaceholderPage title="Gate Operations" />} />
+            <Route path="dock-management" element={<PlaceholderPage title="Dock Management" />} />
+            <Route path="appointments" element={<PlaceholderPage title="Appointments" />} />
+            <Route path="users" element={<PlaceholderPage title="User Management" />} />
+            <Route path="activities" element={<PlaceholderPage title="Activities" />} />
+            <Route path="settings" element={<PlaceholderPage title="Settings" />} />
+            <Route path="*" element={<Navigate to="." replace />} />
+          </Routes>
+        </main>
+      </div>
     </div>
   );
 }

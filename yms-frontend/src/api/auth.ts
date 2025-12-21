@@ -1,9 +1,10 @@
 import { http } from './http';
 
-export type AdminDto = {
+export type UserDto = {
   id: string;
   email: string;
   username: string;
+  role: string;
 };
 
 export type LoginRequest = {
@@ -14,7 +15,7 @@ export type LoginRequest = {
 export type LoginResponse = {
   accessToken: string;
   expiresAtUtc: string;
-  admin: AdminDto;
+  user: UserDto;
 };
 
 export async function login(payload: LoginRequest): Promise<LoginResponse> {
@@ -24,6 +25,6 @@ export async function login(payload: LoginRequest): Promise<LoginResponse> {
   });
 }
 
-export async function me(): Promise<AdminDto> {
-  return http<AdminDto>('/api/auth/me');
+export async function me(): Promise<UserDto> {
+  return http<UserDto>('/api/auth/me');
 }

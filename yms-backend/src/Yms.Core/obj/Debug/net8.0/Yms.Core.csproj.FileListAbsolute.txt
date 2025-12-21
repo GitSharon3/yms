@@ -1,0 +1,12 @@
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/bin/Debug/net8.0/Yms.Core.deps.json
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/bin/Debug/net8.0/Yms.Core.dll
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/bin/Debug/net8.0/Yms.Core.pdb
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/obj/Debug/net8.0/Yms.Core.GeneratedMSBuildEditorConfig.editorconfig
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/obj/Debug/net8.0/Yms.Core.AssemblyInfoInputs.cache
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/obj/Debug/net8.0/Yms.Core.AssemblyInfo.cs
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/obj/Debug/net8.0/Yms.Core.csproj.CoreCompileInputs.cache
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/obj/Debug/net8.0/Yms.Core.sourcelink.json
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/obj/Debug/net8.0/Yms.Core.dll
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/obj/Debug/net8.0/refint/Yms.Core.dll
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/obj/Debug/net8.0/Yms.Core.pdb
+/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/obj/Debug/net8.0/ref/Yms.Core.dll

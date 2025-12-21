@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
-using yms_backend.Data;
-using yms_backend.Models;
+using Yms.Core.Dtos.Yards;
+using Yms.Core.Interfaces;
 
 namespace yms_backend.Controllers;
 
@@ -12,27 +11,24 @@ namespace yms_backend.Controllers;
 [Authorize(Roles = "Admin")]
 public sealed class YardsController : ControllerBase
 {
-    private readonly YmsDbContext _db;
+    private readonly IYardService _yards;
 
-    public YardsController(YmsDbContext db)
+    public YardsController(IYardService yards)
     {
-        _db = db;
+        _yards = yards;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Yard>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<List<YardDto>>> GetAll(CancellationToken cancellationToken)
     {
-        var yards = await _db.Yards
-            .OrderByDescending(x => x.CreatedAtUtc)
-            .ToListAsync(cancellationToken);
-
+        var yards = await _yards.GetAllAsync(cancellationToken);
         return Ok(yards);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Yard>> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<YardDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var yard = await _db.Yards.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var yard = await _yards.GetByIdAsync(id, cancellationToken);
         if (yard is null)
         {
             return NotFound();
@@ -41,52 +37,33 @@ public sealed class YardsController : ControllerBase
         return Ok(yard);
     }
 
-    public sealed record CreateYardRequest(string Name, string? Address);
-
     [HttpPost]
-    public async Task<ActionResult<Yard>> Create([FromBody] CreateYardRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<YardDto>> Create([FromBody] CreateYardRequestDto request, CancellationToken cancellationToken)
     {
-        var yard = new Yard
-        {
-            Name = request.Name,
-            Address = request.Address
-        };
-
-        _db.Yards.Add(yard);
-        await _db.SaveChangesAsync(cancellationToken);
-
+        var yard = await _yards.CreateAsync(request, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = yard.Id }, yard);
     }
 
-    public sealed record UpdateYardRequest(string Name, string? Address);
-
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Yard>> Update(Guid id, [FromBody] UpdateYardRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<YardDto>> Update(Guid id, [FromBody] UpdateYardRequestDto request, CancellationToken cancellationToken)
     {
-        var yard = await _db.Yards.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var yard = await _yards.UpdateAsync(id, request, cancellationToken);
         if (yard is null)
         {
             return NotFound();
         }
 
-        yard.Name = request.Name;
-        yard.Address = request.Address;
-
-        await _db.SaveChangesAsync(cancellationToken);
         return Ok(yard);
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var yard = await _db.Yards.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-        if (yard is null)
+        var ok = await _yards.DeleteAsync(id, cancellationToken);
+        if (!ok)
         {
             return NotFound();
         }
-
-        _db.Yards.Remove(yard);
-        await _db.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
 }

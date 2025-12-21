@@ -7,13 +7,13 @@ import AdminDashboard from './pages/Dashboard/AdminDashboard'
 import LoginPage from './pages/LoginPage/LoginPage'
 
 function HomeRedirect() {
-  const { admin, loading } = useAuth()
+  const { user, loading } = useAuth()
 
   if (loading) {
     return <div style={{ padding: '2rem' }}>Loading…</div>
   }
 
-  return admin ? <Navigate to="/admin" replace /> : <Navigate to="/login" replace />
+  return user ? <Navigate to="/admin" replace /> : <Navigate to="/login" replace />
 }
 
 function App() {
@@ -22,7 +22,7 @@ function App() {
       <Route path="/" element={<HomeRedirect />} />
       <Route path="/login" element={<LoginPage />} />
       <Route
-        path="/admin"
+        path="/admin/*"
         element={
           <ProtectedRoute>
             <AdminDashboard />
