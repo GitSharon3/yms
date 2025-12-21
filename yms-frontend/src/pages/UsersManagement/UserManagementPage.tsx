@@ -124,10 +124,6 @@ function UserViewModal({ user, onClose }: { user: usersApi.UserDto; onClose: () 
           <div className="umValue">{user.isActive ? 'Active' : 'Inactive'}</div>
         </div>
         <div className="umField">
-          <div className="umLabel">Last Login</div>
-          <div className="umValue">{formatDateTime(user.lastLogin)}</div>
-        </div>
-        <div className="umField">
           <div className="umLabel">Created</div>
           <div className="umValue">{formatDateTime(user.createdAt)}</div>
         </div>
@@ -476,7 +472,6 @@ export function UserManagementPage() {
               <div>Role</div>
               <div>Phone</div>
               <div>Status</div>
-              <div>Last Login</div>
               <div className="umActionsHead">Actions</div>
             </div>
 
@@ -502,7 +497,6 @@ export function UserManagementPage() {
                   <div>
                     <span className={statusBadgeClass(u.isActive)}>{u.isActive ? 'Active' : 'Inactive'}</span>
                   </div>
-                  <div>{formatDateTime(u.lastLogin)}</div>
                   <div className="umActions">
                     <button className="umLinkBtn" onClick={() => openView(u)}>
                       View
@@ -521,15 +515,7 @@ export function UserManagementPage() {
         )}
 
         <div className="umPager">
-          <div className="umPagerMeta">
-            {data ? (
-              <>
-                Total: <span className="cellStrong">{data.totalCount}</span>
-              </>
-            ) : (
-              <>Total: —</>
-            )}
-          </div>
+          <div className="umPagerMeta" />
 
           <div className="umPagerControls">
             <button className="umBtn" onClick={() => setPage(1)} disabled={page <= 1}>
