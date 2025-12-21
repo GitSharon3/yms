@@ -47,7 +47,7 @@ public sealed class AdminSeeder
                 PasswordHash = hash,
                 PasswordSalt = salt,
                 PasswordIterations = iterations,
-                Role = UserRole.Admin,
+                Role = UserRole.Admin.ToString(),
                 CreatedAtUtc = DateTime.UtcNow
             }, cancellationToken);
         }
@@ -63,7 +63,7 @@ public sealed class AdminSeeder
             existing.PasswordHash = hash;
             existing.PasswordSalt = salt;
             existing.PasswordIterations = iterations;
-            existing.Role = UserRole.Admin;
+            existing.Role = UserRole.Admin.ToString();
         }
 
         await _users.SaveChangesAsync(cancellationToken);

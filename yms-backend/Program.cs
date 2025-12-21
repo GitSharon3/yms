@@ -14,6 +14,11 @@ using Yms.Infrastructure.Auth;
 using Yms.Infrastructure.Data;
 
 using yms_backend.Infrastructure;
+using yms_backend.Data;
+using yms_backend.Repositories;
+using yms_backend.Repositories.Interfaces;
+using yms_backend.Services;
+using yms_backend.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +68,12 @@ builder.Services.AddCors(options =>
 builder.Services
     .AddApplication()
     .AddInfrastructure(builder.Configuration);
+
+builder.Services.AddDbContext<yms_backend.Data.YmsDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<yms_backend.Repositories.Interfaces.IUserRepository, yms_backend.Repositories.UserRepository>();
+builder.Services.AddScoped<yms_backend.Services.Interfaces.IUserService, yms_backend.Services.UserService>();
 
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? new JwtSettings();
 if (string.IsNullOrWhiteSpace(jwt.SigningKey) || jwt.SigningKey.Length < 32)
@@ -116,7 +127,8 @@ app.MapControllers();
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<YmsDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<Yms.Infrastructure.Data.YmsDbContext>();
+    var userDb = scope.ServiceProvider.GetRequiredService<yms_backend.Data.YmsDbContext>();
     if (app.Environment.IsDevelopment())
     {
         var dropLegacy = app.Configuration.GetValue<bool>("Database:DropLegacyTablesOnStartup");
@@ -126,6 +138,14 @@ await using (var scope = app.Services.CreateAsyncScope())
         }
 
         await db.Database.MigrateAsync(CancellationToken.None);
+        try
+        {
+            await userDb.Database.MigrateAsync(CancellationToken.None);
+        }
+        catch
+        {
+            await userDb.Database.EnsureCreatedAsync(CancellationToken.None);
+        }
     }
 
     var seeder = scope.ServiceProvider.GetRequiredService<AdminSeeder>();

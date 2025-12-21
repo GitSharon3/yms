@@ -488,11 +488,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Application/Yms.Application.csproj",
+      "projectUniqueName": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/Yms.Application.csproj",
       "projectName": "Yms.Application",
-      "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Application/Yms.Application.csproj",
+      "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/Yms.Application.csproj",
       "packagesPath": "/Users/sharonkadariya/.nuget/packages/",
-      "outputPath": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Application/obj/",
+      "outputPath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/sharonkadariya/.nuget/NuGet/NuGet.Config"
@@ -507,8 +507,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/Yms.Core.csproj": {
-              "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/Yms.Core.csproj"
+            "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Core/Yms.Core.csproj": {
+              "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Core/Yms.Core.csproj"
             }
           }
         }

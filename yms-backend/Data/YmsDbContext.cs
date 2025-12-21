@@ -11,6 +11,7 @@ public sealed class YmsDbContext : DbContext
     }
 
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
+    public DbSet<User> Users => Set<User>();
     public DbSet<Yard> Yards => Set<Yard>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

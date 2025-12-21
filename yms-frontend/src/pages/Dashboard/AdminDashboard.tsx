@@ -16,6 +16,8 @@ import {
   IconUsers,
 } from './components/Icons';
 
+import { UserManagementPage } from '../UsersManagement/UserManagementPage';
+
 import './AdminDashboard.css';
 
 type NavItem = {
@@ -113,7 +115,7 @@ export default function AdminDashboard() {
             <Route path="gate-operations" element={<PlaceholderPage title="Gate Operations" />} />
             <Route path="dock-management" element={<PlaceholderPage title="Dock Management" />} />
             <Route path="appointments" element={<PlaceholderPage title="Appointments" />} />
-            <Route path="users" element={<PlaceholderPage title="User Management" />} />
+            <Route path="users" element={<UserManagementPage />} />
             <Route path="activities" element={<PlaceholderPage title="Activities" />} />
             <Route path="settings" element={<PlaceholderPage title="Settings" />} />
             <Route path="*" element={<Navigate to="." replace />} />

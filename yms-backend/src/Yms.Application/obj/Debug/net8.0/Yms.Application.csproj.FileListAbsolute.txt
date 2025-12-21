@@ -14,3 +14,19 @@
 /Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/refint/Yms.Application.dll
 /Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Application.pdb
 /Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/ref/Yms.Application.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/bin/Debug/net8.0/Yms.Application.deps.json
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/bin/Debug/net8.0/Yms.Application.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/bin/Debug/net8.0/Yms.Application.pdb
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/bin/Debug/net8.0/Yms.Core.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/bin/Debug/net8.0/Yms.Core.pdb
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Application.csproj.AssemblyReference.cache
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Application.GeneratedMSBuildEditorConfig.editorconfig
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Application.AssemblyInfoInputs.cache
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Application.AssemblyInfo.cs
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Application.csproj.CoreCompileInputs.cache
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Application.sourcelink.json
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Appl.A436607A.Up2Date
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Application.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/refint/Yms.Application.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/Yms.Application.pdb
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/obj/Debug/net8.0/ref/Yms.Application.dll

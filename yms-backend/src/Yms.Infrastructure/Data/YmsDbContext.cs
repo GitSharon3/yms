@@ -28,13 +28,16 @@ public sealed class YmsDbContext : DbContext
             entity.ToTable("Users");
             entity.HasKey(x => x.Id);
 
+            entity.Property(x => x.FullName).IsRequired().HasMaxLength(100);
             entity.Property(x => x.Email).IsRequired().HasMaxLength(254);
+            entity.Property(x => x.Phone).IsRequired().HasMaxLength(20);
             entity.Property(x => x.Username).IsRequired().HasMaxLength(50);
+            entity.Property(x => x.Role).IsRequired().HasMaxLength(50);
             entity.Property(x => x.PasswordHash).IsRequired();
             entity.Property(x => x.PasswordSalt).IsRequired();
             entity.Property(x => x.PasswordIterations).IsRequired();
-            entity.Property(x => x.Role).IsRequired();
             entity.Property(x => x.CreatedAtUtc).IsRequired();
+            entity.Property(x => x.UpdatedAt);
 
             entity.HasIndex(x => x.Email).IsUnique();
             entity.HasIndex(x => x.Username).IsUnique();

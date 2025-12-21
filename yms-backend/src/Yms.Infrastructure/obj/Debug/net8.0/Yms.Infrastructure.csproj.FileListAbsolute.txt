@@ -16,3 +16,21 @@
 /Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.pdb
 /Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.genruntimeconfig.cache
 /Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/ref/Yms.Infrastructure.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/bin/Debug/net8.0/Yms.Infrastructure.deps.json
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/bin/Debug/net8.0/Yms.Infrastructure.runtimeconfig.json
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/bin/Debug/net8.0/Yms.Infrastructure.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/bin/Debug/net8.0/Yms.Infrastructure.pdb
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/bin/Debug/net8.0/Yms.Core.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/bin/Debug/net8.0/Yms.Core.pdb
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.csproj.AssemblyReference.cache
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.AssemblyInfoInputs.cache
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.AssemblyInfo.cs
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.csproj.CoreCompileInputs.cache
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.sourcelink.json
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infr.BAA6CF93.Up2Date
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/refint/Yms.Infrastructure.dll
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.pdb
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/Yms.Infrastructure.genruntimeconfig.cache
+/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/obj/Debug/net8.0/ref/Yms.Infrastructure.dll

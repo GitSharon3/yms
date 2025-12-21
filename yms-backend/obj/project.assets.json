@@ -3505,11 +3505,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/yms-backend.csproj",
+      "projectUniqueName": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/yms-backend.csproj",
       "projectName": "yms-backend",
-      "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/yms-backend.csproj",
+      "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/yms-backend.csproj",
       "packagesPath": "/Users/sharonkadariya/.nuget/packages/",
-      "outputPath": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/obj/",
+      "outputPath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/sharonkadariya/.nuget/NuGet/NuGet.Config"
@@ -3524,14 +3524,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Application/Yms.Application.csproj": {
-              "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Application/Yms.Application.csproj"
+            "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/Yms.Application.csproj": {
+              "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/Yms.Application.csproj"
             },
-            "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/Yms.Core.csproj": {
-              "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Core/Yms.Core.csproj"
+            "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Core/Yms.Core.csproj": {
+              "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Core/Yms.Core.csproj"
             },
-            "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Infrastructure/Yms.Infrastructure.csproj": {
-              "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy/yms-backend/src/Yms.Infrastructure/Yms.Infrastructure.csproj"
+            "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/Yms.Infrastructure.csproj": {
+              "projectPath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Infrastructure/Yms.Infrastructure.csproj"
             }
           }
         }

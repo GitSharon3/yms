@@ -1,0 +1,312 @@
+.umToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+
+.umHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.umSearch {
+  flex: 1;
+  min-width: 240px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 0 0.9rem;
+  background: #ffffff;
+  outline: none;
+}
+
+.umSearch:focus {
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.umSelectInline {
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 0 0.75rem;
+  background: #ffffff;
+  outline: none;
+  color: rgba(15, 23, 42, 0.85);
+  font-weight: 700;
+}
+
+.umBtn {
+  height: 38px;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.8);
+  font-weight: 800;
+}
+
+.umBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.umBtnPrimary {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.umBtnPrimary:hover {
+  background: #1d4ed8;
+}
+
+.umBtnDanger {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.umBtnDanger:hover {
+  background: #dc2626;
+}
+
+.umTableWrap {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.umTableHeader,
+.umTableRow {
+  display: grid;
+  grid-template-columns: 0.7fr 1.2fr 1.4fr 0.9fr 1fr 0.8fr 1.1fr 0.9fr;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  align-items: center;
+}
+
+.umTableHeader {
+  background: rgba(15, 23, 42, 0.03);
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+.umTableRow {
+  background: #ffffff;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 0.92rem;
+}
+
+.umActionsHead {
+  text-align: right;
+}
+
+.umActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.umLinkBtn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 900;
+  color: #2563eb;
+  padding: 0.25rem 0.15rem;
+}
+
+.umLinkBtn:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.umLinkBtn.danger {
+  color: #dc2626;
+}
+
+.umMono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+.umEllipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.umSub {
+  font-size: 0.82rem;
+  color: rgba(15, 23, 42, 0.55);
+  margin-top: 0.15rem;
+}
+
+.umPager {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.umPagerMeta {
+  color: rgba(15, 23, 42, 0.7);
+  font-weight: 700;
+}
+
+.umPagerControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.umPagerPage {
+  padding: 0 0.5rem;
+  color: rgba(15, 23, 42, 0.7);
+  font-weight: 700;
+}
+
+.umModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 50;
+}
+
+.umModal {
+  width: min(720px, 100%);
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+
+.umModalHeader {
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.umModalTitle {
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.9);
+}
+
+.umIconBtn {
+  height: 34px;
+  width: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.7);
+}
+
+.umIconBtn:hover {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.umModalBody {
+  padding: 1rem;
+}
+
+.umFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.umField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.umLabel {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.7);
+}
+
+.umInput,
+.umSelect {
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 0 0.8rem;
+  background: #ffffff;
+  outline: none;
+}
+
+.umInput:focus,
+.umSelect:focus {
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.umValue {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.02);
+  color: rgba(15, 23, 42, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.umConfirmText {
+  color: rgba(15, 23, 42, 0.75);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.umModalActions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+@media (max-width: 780px) {
+  .umFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .umTableHeader,
+  .umTableRow {
+    grid-template-columns: 1fr 1.2fr 1.4fr 1fr;
+  }
+
+  .umTableHeader > :nth-child(1),
+  .umTableRow > :nth-child(1),
+  .umTableHeader > :nth-child(5),
+  .umTableRow > :nth-child(5),
+  .umTableHeader > :nth-child(7),
+  .umTableRow > :nth-child(7) {
+    display: none;
+  }
+
+  .umActions {
+    justify-content: flex-start;
+  }
+}
