@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>yms_backend</RootNamespace>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <AnalysisLevel>none</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,11 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="src\**\*.cs" />
-    <EmbeddedResource Remove="src\**\*" />
-    <None Remove="src\**\*" />
+    <Compile Remove="src/Yms.Application/**" />
+    <Compile Remove="src/Yms.Core/**" />
+    <Compile Remove="src/Yms.Infrastructure/**" />
   </ItemGroup>
 
+  
   <ItemGroup>
     <ProjectReference Include="src/Yms.Application/Yms.Application.csproj" />
     <ProjectReference Include="src/Yms.Core/Yms.Core.csproj" />

@@ -91,6 +91,23 @@
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
+.fieldInput--error {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.fieldInput--error:focus {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+.fieldError {
+  font-size: 0.82rem;
+  color: #b91c1c;
+  margin-top: 0.25rem;
+  line-height: 1.3;
+}
+
 .rowBetween {
   display: flex;
   align-items: center;

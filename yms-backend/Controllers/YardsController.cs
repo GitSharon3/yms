@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Yms.Core.Dtos.Yards;
 using Yms.Core.Interfaces;
 
-namespace yms_backend.Controllers;
+namespace Yms.Backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,7 +15,7 @@ public sealed class YardsController : ControllerBase
 
     public YardsController(IYardService yards)
     {
-        _yards = yards;
+        _yards = yards ?? throw new ArgumentNullException(nameof(yards));
     }
 
     [HttpGet]

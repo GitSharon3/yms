@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7dSSHjkQWTc=",
+  "dgSpecHash": "zeG6kNdPhsc=",
   "success": true,
-  "projectFilePath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/yms-backend.csproj",
+  "projectFilePath": "/Users/sharonkadariya/Downloads/YMS/yms-backend/yms-backend.csproj",
   "expectedPackageFiles": [
     "/Users/sharonkadariya/.nuget/packages/automapper/12.0.1/automapper.12.0.1.nupkg.sha512",
     "/Users/sharonkadariya/.nuget/packages/automapper.extensions.microsoft.dependencyinjection/12.0.1/automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",

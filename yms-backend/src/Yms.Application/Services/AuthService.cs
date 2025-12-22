@@ -25,25 +25,64 @@ public sealed class AuthService : IAuthService
         var identifier = request.Identifier?.Trim() ?? string.Empty;
         var password = request.Password ?? string.Empty;
 
-        if (string.IsNullOrWhiteSpace(identifier) || string.IsNullOrWhiteSpace(password))
+        if (string.IsNullOrWhiteSpace(identifier))
         {
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            throw new ArgumentException("Email or username is required.", nameof(request.Identifier));
+        }
+
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            throw new ArgumentException("Password is required.", nameof(request.Password));
+        }
+
+        if (password.Length < 6)
+        {
+            throw new ArgumentException("Password must be at least 6 characters long.", nameof(request.Password));
+        }
+
+        if (identifier.Length > 254)
+        {
+            throw new ArgumentException("Email or username cannot exceed 254 characters.", nameof(request.Identifier));
+        }
+
+        if (password.Length > 200)
+        {
+            throw new ArgumentException("Password cannot exceed 200 characters.", nameof(request.Password));
+        }
+
+        // Email format validation if it looks like an email
+        if (identifier.Contains('@') && !IsValidEmail(identifier))
+        {
+            throw new ArgumentException("Please enter a valid email address.", nameof(request.Identifier));
         }
 
         var user = await _users.GetByIdentifierAsync(identifier, cancellationToken);
         if (user is null)
         {
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            throw new UnauthorizedAccessException("Invalid email/username or password.");
         }
 
         var ok = _passwords.Verify(password, user.PasswordHash, user.PasswordSalt, user.PasswordIterations);
         if (!ok)
         {
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            throw new UnauthorizedAccessException("Invalid email/username or password.");
         }
 
         var (token, expiresAtUtc) = _tokens.CreateToken(user);
         var dto = _mapper.Map<UserDto>(user);
         return new LoginResponseDto(token, expiresAtUtc, dto);
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

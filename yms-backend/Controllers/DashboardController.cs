@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Yms.Core.Dtos.Dashboard;
 using Yms.Core.Interfaces;
 
-namespace yms_backend.Controllers;
+namespace Yms.Backend.Controllers;
 
 [ApiController]
 [Route("api/dashboard")]
@@ -15,7 +15,7 @@ public sealed class DashboardController : ControllerBase
 
     public DashboardController(IDashboardService dashboard)
     {
-        _dashboard = dashboard;
+        _dashboard = dashboard ?? throw new ArgumentNullException(nameof(dashboard));
     }
 
     [HttpGet("overview")]

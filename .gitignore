@@ -1,3 +1,14 @@
+sharonkadariya@192 YMS % brew services list | grep postgresql
+✔︎ JSON API formula_tap_migrations.jws.json
+✔︎ JSON API cask_tap_migrations.jws.json
+✔︎ JSON API cask.jws.json
+✔︎ JSON API formula.jws.json
+postgresql@14 started         sharonkadariya ~/Library/LaunchAgents/homebrew.mxcl.postgresql@14.plist
+sharonkadariya@192 YMS % psql --version
+ls -l /usr/local/var/postgres
+psql (PostgreSQL) 14.20 (Homebrew)
+ls: /usr/local/var/postgres: No such file or directory
+sharonkadariya@192 YMS % 
 # Dependencies
 node_modules/
 npm-debug.log

@@ -1,25 +1,31 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using yms_backend.Models.DTOs.User;
-using yms_backend.Services.Interfaces;
+using Yms.Core.Dtos.Users;
+using Yms.Core.Interfaces;
 
-namespace yms_backend.Controllers;
+namespace Yms.Backend.Controllers;
 
+/// <summary>
+/// Controller for user management operations
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
-public class UsersController : ControllerBase
+public sealed class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly ILogger<UsersController> _logger;
 
     public UsersController(IUserService userService, ILogger<UsersController> logger)
     {
-        _userService = userService;
-        _logger = logger;
+        _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Gets a paginated list of users with optional filtering
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetUsers(
         [FromQuery] int page = 1, 
@@ -46,6 +52,9 @@ public class UsersController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets a user by their unique identifier
+    /// </summary>
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetUser(Guid id)
     {
@@ -59,11 +68,14 @@ public class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error occurred while getting user with ID: {id}");
+            _logger.LogError(ex, "Error occurred while getting user with ID: {UserId}", id);
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
 
+    /// <summary>
+    /// Creates a new user
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
     {
@@ -72,12 +84,12 @@ public class UsersController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Check if username or email already exists
-            if (await _userService.IsUsernameOrEmailTakenAsync(createUserDto.Username, createUserDto.Email))
-                return Conflict("Username or email already exists");
-
             var user = await _userService.CreateUserAsync(createUserDto);
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
+        {
+            return Conflict("Username or email already exists");
         }
         catch (Exception ex)
         {
@@ -86,6 +98,9 @@ public class UsersController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Updates an existing user
+    /// </summary>
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto updateUserDto)
     {
@@ -100,18 +115,28 @@ public class UsersController : ControllerBase
                 
             return Ok(user);
         }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("already taken"))
+        {
+            return Conflict(ex.Message);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error occurred while updating user with ID: {id}");
+            _logger.LogError(ex, "Error occurred while updating user with ID: {UserId}", id);
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
 
+    /// <summary>
+    /// Updates a user's active status
+    /// </summary>
     [HttpPatch("{id:guid}/status")]
     public async Task<IActionResult> UpdateUserStatus(Guid id, [FromBody] UserStatusDto statusDto)
     {
         try
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var success = await _userService.UpdateUserStatusAsync(id, statusDto.IsActive);
             if (!success)
                 return NotFound();
@@ -120,7 +145,7 @@ public class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error occurred while updating status for user with ID: {id}");
+            _logger.LogError(ex, "Error occurred while updating status for user with ID: {UserId}", id);
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }

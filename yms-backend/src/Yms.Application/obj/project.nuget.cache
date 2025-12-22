@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "AmGr4WBnyj4=",
+  "dgSpecHash": "wJp3tMvu4Eg=",
   "success": true,
-  "projectFilePath": "/Users/sharonkadariya/Downloads/YMS_copy copy/yms-backend/src/Yms.Application/Yms.Application.csproj",
+  "projectFilePath": "/Users/sharonkadariya/Downloads/YMS/yms-backend/src/Yms.Application/Yms.Application.csproj",
   "expectedPackageFiles": [
     "/Users/sharonkadariya/.nuget/packages/automapper/12.0.1/automapper.12.0.1.nupkg.sha512",
     "/Users/sharonkadariya/.nuget/packages/automapper.extensions.microsoft.dependencyinjection/12.0.1/automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
@@ -12,6 +12,7 @@
     "/Users/sharonkadariya/.nuget/packages/microsoft.extensions.configuration.abstractions/8.0.0/microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
     "/Users/sharonkadariya/.nuget/packages/microsoft.extensions.configuration.binder/8.0.0/microsoft.extensions.configuration.binder.8.0.0.nupkg.sha512",
     "/Users/sharonkadariya/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/8.0.0/microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "/Users/sharonkadariya/.nuget/packages/microsoft.extensions.logging.abstractions/8.0.0/microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
     "/Users/sharonkadariya/.nuget/packages/microsoft.extensions.options/6.0.0/microsoft.extensions.options.6.0.0.nupkg.sha512",
     "/Users/sharonkadariya/.nuget/packages/microsoft.extensions.primitives/8.0.0/microsoft.extensions.primitives.8.0.0.nupkg.sha512",
     "/Users/sharonkadariya/.nuget/packages/microsoft.netcore.app.ref/8.0.22/microsoft.netcore.app.ref.8.0.22.nupkg.sha512",

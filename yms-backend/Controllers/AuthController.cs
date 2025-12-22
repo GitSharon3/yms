@@ -1,29 +1,47 @@
 using System.Security.Claims;
-
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using Yms.Core.Dtos.Auth;
 using Yms.Core.Interfaces;
 
-namespace yms_backend.Controllers;
+namespace Yms.Backend.Controllers;
 
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;
+    private readonly IValidator<LoginRequestDto> _validator;
 
-    public AuthController(IAuthService auth)
+    public AuthController(IAuthService auth, IValidator<LoginRequestDto> validator)
     {
-        _auth = auth;
+        _auth = auth ?? throw new ArgumentNullException(nameof(auth));
+        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request, CancellationToken cancellationToken)
     {
-        var dto = await _auth.LoginAsync(request, cancellationToken);
-        return Ok(dto);
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(new { message = string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage)) });
+        }
+
+        try
+        {
+            var dto = await _auth.LoginAsync(request, cancellationToken);
+            return Ok(dto);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
     }
 
     [Authorize(Roles = "Admin")]

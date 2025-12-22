@@ -12,7 +12,6 @@ public sealed class User : EntityBase
     public string Role { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     public DateTime? LastLogin { get; set; }
-    public DateTime? UpdatedAt { get; set; }
 
     public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
     public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();

@@ -18,6 +18,7 @@ public sealed class JwtTokenService : IJwtTokenService
     public JwtTokenService(IOptions<JwtSettings> settings)
     {
         _settings = settings.Value;
+        Console.WriteLine($"JWT Settings - Issuer: '{_settings.Issuer}', Audience: '{_settings.Audience}', SigningKey: '{_settings.SigningKey}', ExpiresMinutes: {_settings.ExpiresMinutes}");
     }
 
     public (string token, DateTime expiresAtUtc) CreateToken(User user)
