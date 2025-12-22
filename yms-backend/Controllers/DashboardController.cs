@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using Yms.Core.Dtos.Dashboard;
+using Yms.Core.Enums;
 using Yms.Core.Interfaces;
 
 namespace Yms.Backend.Controllers;
 
 [ApiController]
 [Route("api/dashboard")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = nameof(UserRole.Admin))]
 public sealed class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboard;

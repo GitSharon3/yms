@@ -1,7 +1,11 @@
+using System;
+using System.Linq;
+
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Yms.Core.Dtos.Users;
 using Yms.Core.Entities;
+using Yms.Core.Enums;
 using Yms.Core.Interfaces;
 
 namespace Yms.Application.Services;
@@ -28,6 +32,32 @@ public sealed class UserService : IUserService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    private static string NormalizeRoleKey(string value)
+    {
+        var chars = value.Where(char.IsLetterOrDigit).ToArray();
+        return new string(chars).ToLowerInvariant();
+    }
+
+    private static string NormalizeRole(string role)
+    {
+        var trimmed = role?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(trimmed))
+        {
+            throw new ArgumentException("Role is required");
+        }
+
+        var key = NormalizeRoleKey(trimmed);
+        foreach (var name in Enum.GetNames(typeof(UserRole)))
+        {
+            if (NormalizeRoleKey(name) == key)
+            {
+                return name;
+            }
+        }
+
+        throw new ArgumentException($"Invalid role '{role}'.");
+    }
+
     /// <summary>
     /// Gets a paginated list of users with optional filtering
     /// </summary>
@@ -43,8 +73,10 @@ public sealed class UserService : IUserService
         {
             _logger.LogInformation("Getting users with page {PageNumber}, size {PageSize}", pageNumber, pageSize);
 
-            var users = await _userRepository.GetAllUsersAsync(pageNumber, pageSize, searchTerm, role, isActive, cancellationToken);
-            var totalCount = await _userRepository.GetTotalCountAsync(searchTerm, role, isActive, cancellationToken);
+            var normalizedRole = string.IsNullOrWhiteSpace(role) ? null : NormalizeRole(role);
+
+            var users = await _userRepository.GetAllUsersAsync(pageNumber, pageSize, searchTerm, normalizedRole, isActive, cancellationToken);
+            var totalCount = await _userRepository.GetTotalCountAsync(searchTerm, normalizedRole, isActive, cancellationToken);
 
             var userDtos = _mapper.Map<IEnumerable<Yms.Core.Dtos.Users.UserDto>>(users);
 
@@ -54,6 +86,31 @@ public sealed class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while retrieving users");
+            throw;
+        }
+    }
+
+    public async Task<bool> DeleteUserAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting user with ID: {UserId}", id);
+            var ok = await _userRepository.DeleteUserAsync(id, cancellationToken);
+
+            if (ok)
+            {
+                _logger.LogInformation("Successfully deleted user with ID: {UserId}", id);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to delete user with ID: {UserId} - user not found", id);
+            }
+
+            return ok;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while deleting user with ID: {UserId}", id);
             throw;
         }
     }
@@ -110,7 +167,7 @@ public sealed class UserService : IUserService
                 Email = createUserDto.Email.Trim(),
                 Username = createUserDto.Username.Trim(),
                 Phone = createUserDto.Phone.Trim(),
-                Role = createUserDto.Role.Trim(),
+                Role = NormalizeRole(createUserDto.Role),
                 IsActive = true,
                 PasswordHash = passwordHash,
                 PasswordSalt = salt,
@@ -174,7 +231,7 @@ public sealed class UserService : IUserService
             }
 
             if (!string.IsNullOrWhiteSpace(updateUserDto.Role))
-                existingUser.Role = updateUserDto.Role.Trim();
+                existingUser.Role = NormalizeRole(updateUserDto.Role);
 
             // Update password if provided
             if (!string.IsNullOrEmpty(updateUserDto.Password))

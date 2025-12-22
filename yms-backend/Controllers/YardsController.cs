@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using Yms.Core.Dtos.Yards;
+using Yms.Core.Enums;
 using Yms.Core.Interfaces;
 
 namespace Yms.Backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = nameof(UserRole.Admin))]
 public sealed class YardsController : ControllerBase
 {
     private readonly IYardService _yards;

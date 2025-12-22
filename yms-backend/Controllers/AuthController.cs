@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Yms.Core.Enums;
 using Yms.Core.Dtos.Auth;
 using Yms.Core.Interfaces;
 
@@ -44,7 +45,7 @@ public sealed class AuthController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpGet("me")]
     public ActionResult<UserDto> Me()
     {

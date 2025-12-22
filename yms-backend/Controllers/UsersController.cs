@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Yms.Core.Dtos.Users;
+using Yms.Core.Enums;
 using Yms.Core.Interfaces;
 
 namespace Yms.Backend.Controllers;
@@ -11,7 +12,7 @@ namespace Yms.Backend.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = nameof(UserRole.Admin))]
 public sealed class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -146,6 +147,26 @@ public sealed class UsersController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while updating status for user with ID: {UserId}", id);
+            return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
+    {
+        try
+        {
+            var ok = await _userService.DeleteUserAsync(id);
+            if (!ok)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while deleting user with ID: {UserId}", id);
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }

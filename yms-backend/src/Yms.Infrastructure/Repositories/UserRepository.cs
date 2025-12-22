@@ -47,6 +47,28 @@ public sealed class UserRepository : IUserRepository
         }
     }
 
+    public async Task<bool> DeleteUserAsync(Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (user == null)
+            {
+                return false;
+            }
+
+            _db.Users.Remove(user);
+            await _db.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Deleted user with ID: {UserId}", id);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting user with ID: {UserId}", id);
+            throw;
+        }
+    }
+
     /// <summary>
     /// Gets a user by their unique ID
     /// </summary>
@@ -92,7 +114,8 @@ public sealed class UserRepository : IUserRepository
 
             if (!string.IsNullOrWhiteSpace(role))
             {
-                query = query.Where(u => u.Role == role.Trim());
+                var roleKey = role.Trim().Replace(" ", string.Empty).ToLowerInvariant();
+                query = query.Where(u => u.Role.Replace(" ", string.Empty).ToLower() == roleKey);
             }
 
             if (isActive.HasValue)
@@ -142,7 +165,8 @@ public sealed class UserRepository : IUserRepository
 
             if (!string.IsNullOrWhiteSpace(role))
             {
-                query = query.Where(u => u.Role == role.Trim());
+                var roleKey = role.Trim().Replace(" ", string.Empty).ToLowerInvariant();
+                query = query.Where(u => u.Role.Replace(" ", string.Empty).ToLower() == roleKey);
             }
 
             if (isActive.HasValue)

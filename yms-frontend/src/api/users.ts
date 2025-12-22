@@ -2,7 +2,7 @@ import { getAccessToken } from '../auth/token';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string | undefined;
 
-export type UserRole = 'Admin' | 'Yard Manager' | 'Driver' | 'ViewOnly';
+export type UserRole = 'Admin' | 'YardManager' | 'YardJockey' | 'GateSecurity' | 'Driver' | 'ViewOnly' | 'Operator';
 
 export type UserDto = {
   id: string;
@@ -148,5 +148,11 @@ export async function updateUserStatus(id: string, isActive: boolean): Promise<v
   await request<void>(`/api/users/${id}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ isActive } satisfies UserStatusDto),
+  });
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  await request<void>(`/api/users/${id}`, {
+    method: 'DELETE',
   });
 }

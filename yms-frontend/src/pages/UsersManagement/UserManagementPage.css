@@ -12,20 +12,70 @@
   gap: 0.6rem;
 }
 
-.umSearch {
+.umSearchWrap {
+  position: relative;
   flex: 1;
   min-width: 240px;
+  display: flex;
+  align-items: center;
+}
+
+.umSearchIcon {
+  position: absolute;
+  left: 0.75rem;
+  color: rgba(15, 23, 42, 0.45);
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.umSearchClear {
+  position: absolute;
+  right: 0.55rem;
+  height: 28px;
+  width: 28px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.umSearchClear:hover {
+  background: rgba(15, 23, 42, 0.03);
+  transform: scale(1.04);
+}
+
+.umSearchClear:active {
+  transform: scale(0.98);
+}
+
+.umSearchClear:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.umSearch {
+  width: 100%;
   height: 40px;
   border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.12);
-  padding: 0 0.9rem;
+  padding: 0 2.25rem 0 2.2rem;
   background: #ffffff;
   outline: none;
+  transition: all 0.2s ease;
 }
 
 .umSearch:focus {
   border-color: rgba(37, 99, 235, 0.5);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.umSearchWrap:focus-within .umSearchIcon {
+  color: rgba(37, 99, 235, 0.8);
 }
 
 .umSelectInline {
@@ -37,6 +87,7 @@
   outline: none;
   color: rgba(15, 23, 42, 0.85);
   font-weight: 700;
+  transition: all 0.2s ease;
 }
 
 .umBtn {
@@ -48,6 +99,16 @@
   cursor: pointer;
   color: rgba(15, 23, 42, 0.8);
   font-weight: 800;
+  transition: all 0.2s ease;
+}
+
+.umBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.umBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
 }
 
 .umBtn:disabled {
@@ -63,6 +124,8 @@
 
 .umBtnPrimary:hover {
   background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .umBtnDanger {
@@ -73,18 +136,21 @@
 
 .umBtnDanger:hover {
   background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
 
 .umTableWrap {
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
 .umTableHeader,
 .umTableRow {
   display: grid;
-  grid-template-columns: 0.7fr 1.2fr 1.4fr 0.9fr 1fr 0.8fr 0.9fr;
+  grid-template-columns: 1.2fr 1.4fr 0.9fr 1fr 0.8fr 0.9fr;
   gap: 0.75rem;
   padding: 0.75rem 0.85rem;
   align-items: center;
@@ -101,6 +167,12 @@
   background: #ffffff;
   border-top: 1px solid rgba(15, 23, 42, 0.06);
   font-size: 0.92rem;
+  transition: all 0.2s ease;
+}
+
+.umTableRow:hover {
+  background: rgba(37, 99, 235, 0.02);
+  transform: translateX(2px);
 }
 
 .umActionsHead {
@@ -110,7 +182,33 @@
 .umActions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.55rem;
+  gap: 0.35rem;
+}
+
+.umActionBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.02);
+  color: rgba(15, 23, 42, 0.6);
+  transition: all 0.2s ease;
+}
+
+.umActionBtn:hover {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.2);
+  color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.umDangerBtn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
 }
 
 .umLinkBtn {
@@ -183,6 +281,27 @@
   justify-content: center;
   padding: 1.25rem;
   z-index: 50;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .umModal {
@@ -192,6 +311,7 @@
   border: 1px solid rgba(15, 23, 42, 0.12);
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
   overflow: hidden;
+  animation: slideUp 0.3s ease-out;
 }
 
 .umModalHeader {
@@ -216,10 +336,47 @@
   cursor: pointer;
   font-weight: 900;
   color: rgba(15, 23, 42, 0.7);
+  transition: all 0.2s ease;
 }
 
 .umIconBtn:hover {
   background: rgba(15, 23, 42, 0.03);
+  transform: scale(1.05);
+}
+
+.umIconBtn:active {
+  transform: scale(0.98);
+}
+
+.umIconBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .umModalOverlay,
+  .umModal {
+    animation: none;
+  }
+
+  .umTableRow,
+  .umBtn,
+  .umIconBtn,
+  .umSearch,
+  .umSearchIcon,
+  .umSearchClear,
+  .badge {
+    transition: none;
+  }
+
+  .umTableRow:hover,
+  .umIconBtn:hover,
+  .umBtnPrimary:hover,
+  .umBtnDanger:hover,
+  .badge:hover,
+  .umSearchClear:hover {
+    transform: none;
+  }
 }
 
 .umModalBody {
@@ -242,6 +399,21 @@
   font-size: 0.82rem;
   font-weight: 900;
   color: rgba(15, 23, 42, 0.7);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.badge:hover {
+  transform: scale(1.05);
 }
 
 .umInput,
@@ -283,7 +455,18 @@
 .umModalActions {
   margin-top: 1rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.umModalActionsLeft {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.umModalActionsRight {
+  display: flex;
   gap: 0.6rem;
 }
 
@@ -294,15 +477,15 @@
 
   .umTableHeader,
   .umTableRow {
-    grid-template-columns: 1fr 1.2fr 1.4fr 1fr;
+    grid-template-columns: 1fr 1.4fr 1fr;
   }
 
-  .umTableHeader > :nth-child(1),
-  .umTableRow > :nth-child(1),
+  .umTableHeader > :nth-child(4),
+  .umTableRow > :nth-child(4),
   .umTableHeader > :nth-child(5),
   .umTableRow > :nth-child(5),
-  .umTableHeader > :nth-child(7),
-  .umTableRow > :nth-child(7) {
+  .umTableHeader > :nth-child(6),
+  .umTableRow > :nth-child(6) {
     display: none;
   }
 

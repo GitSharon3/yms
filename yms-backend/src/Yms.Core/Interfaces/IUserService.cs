@@ -39,6 +39,8 @@ public interface IUserService
     /// </summary>
     Task<bool> UpdateUserStatusAsync(Guid id, bool isActive, CancellationToken cancellationToken = default);
 
+    Task<bool> DeleteUserAsync(Guid id, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Checks if a username or email is already taken
     /// </summary>

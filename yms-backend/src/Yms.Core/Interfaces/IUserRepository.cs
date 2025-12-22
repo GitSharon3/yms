@@ -52,6 +52,8 @@ public interface IUserRepository
     /// </summary>
     Task<bool> UpdateUserStatusAsync(Guid id, bool isActive, CancellationToken cancellationToken);
 
+    Task<bool> DeleteUserAsync(Guid id, CancellationToken cancellationToken);
+
     /// <summary>
     /// Checks if a username or email already exists
     /// </summary>
