@@ -18,6 +18,7 @@ public sealed class YmsDbContext : DbContext
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<GateActivity> GateActivities => Set<GateActivity>();
+    public DbSet<GateAuditEvent> GateAuditEvents => Set<GateAuditEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -181,6 +182,42 @@ public sealed class YmsDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(x => x.Driver)
+                .WithMany()
+                .HasForeignKey(x => x.DriverId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<GateAuditEvent>(entity =>
+        {
+            entity.ToTable("GateAuditEvents");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Action).IsRequired().HasMaxLength(80);
+            entity.Property(x => x.Outcome).IsRequired().HasMaxLength(80);
+            entity.Property(x => x.ActorRole).IsRequired().HasMaxLength(50);
+            entity.Property(x => x.GateName).IsRequired().HasMaxLength(80);
+
+            entity.Property(x => x.TrailerNumber).HasMaxLength(60);
+            entity.Property(x => x.SealNumber).HasMaxLength(60);
+            entity.Property(x => x.DockOrParking).HasMaxLength(120);
+            entity.Property(x => x.DetailsJson);
+
+            entity.Property(x => x.ActorUserId).IsRequired();
+            entity.Property(x => x.OccurredAtUtc).IsRequired();
+            entity.Property(x => x.CreatedAtUtc).IsRequired();
+
+            entity.HasIndex(x => x.OccurredAtUtc);
+            entity.HasIndex(x => x.Action);
+            entity.HasIndex(x => x.GateName);
+            entity.HasIndex(x => x.VehicleId);
+            entity.HasIndex(x => x.DriverId);
+
+            entity.HasOne<Vehicle>()
+                .WithMany()
+                .HasForeignKey(x => x.VehicleId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<Driver>()
                 .WithMany()
                 .HasForeignKey(x => x.DriverId)
                 .OnDelete(DeleteBehavior.SetNull);

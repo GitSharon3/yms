@@ -45,7 +45,7 @@ public sealed class AuthController : ControllerBase
         }
     }
 
-    [Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize]
     [HttpGet("me")]
     public ActionResult<UserDto> Me()
     {

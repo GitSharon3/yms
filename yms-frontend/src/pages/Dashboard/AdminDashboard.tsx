@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 
 import { useAuth } from '../../auth/AuthContext';
+import { canSeeNavItem } from '../../auth/permissions';
 import { OverviewDashboard } from './OverviewDashboard';
 import { PlaceholderPage } from './PlaceholderPage';
 import {
@@ -18,6 +19,7 @@ import {
 
 import { UserManagementPage } from '../UsersManagement/UserManagementPage';
 import { AppointmentsPage } from '../Appointments/AppointmentsPage';
+import { GateOperationsPage } from '../GateOperations/GateOperationsPage';
 
 import './AdminDashboard.css';
 
@@ -53,6 +55,7 @@ function initials(name: string) {
 export default function AdminDashboard() {
   const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '(same origin)';
   const { user, logout } = useAuth();
+  const role = user?.role ?? '';
 
   return (
     <div className="ymsShell">
@@ -66,7 +69,7 @@ export default function AdminDashboard() {
         </div>
 
         <nav className="ymsNav">
-          {NAV.map((item) => (
+          {NAV.filter((i) => canSeeNavItem(role, i.to)).map((item) => (
             <NavLink
               key={item.label}
               to={item.to}
@@ -113,7 +116,7 @@ export default function AdminDashboard() {
             <Route index element={<OverviewDashboard />} />
             <Route path="yard-map" element={<PlaceholderPage title="Yard Map" />} />
             <Route path="vehicles" element={<PlaceholderPage title="Vehicles" />} />
-            <Route path="gate-operations" element={<PlaceholderPage title="Gate Operations" />} />
+            <Route path="gate-operations" element={<GateOperationsPage />} />
             <Route path="dock-management" element={<PlaceholderPage title="Dock Management" />} />
             <Route path="appointments" element={<AppointmentsPage />} />
             <Route path="users" element={<UserManagementPage />} />

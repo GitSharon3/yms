@@ -1,0 +1,144 @@
+.gateGrid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.gateCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.gateFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.gateField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.gateLabel {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.7);
+}
+
+.gateInput,
+.gateSelect {
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 0 0.75rem;
+  background: #ffffff;
+  outline: none;
+  color: rgba(15, 23, 42, 0.85);
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.gateInput:focus,
+.gateSelect:focus {
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.gateActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.gateBtn {
+  height: 38px;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.82);
+  font-weight: 900;
+  transition: all 0.2s ease;
+}
+
+.gateBtn:hover {
+  background: rgba(15, 23, 42, 0.03);
+  transform: translateY(-1px);
+}
+
+.gateBtnPrimary {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.gateBtnPrimary:hover {
+  background: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.gateBtnDanger {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+}
+
+.gateBtnDanger:hover {
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.gateBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.gateFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.gateFeedItem {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+}
+
+.gateFeedTitle {
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.9);
+}
+
+.gateFeedMeta {
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.gateMuted {
+  color: rgba(15, 23, 42, 0.55);
+}
+
+@media (max-width: 980px) {
+  .gateGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .gateFormGrid {
+    grid-template-columns: 1fr;
+  }
+}

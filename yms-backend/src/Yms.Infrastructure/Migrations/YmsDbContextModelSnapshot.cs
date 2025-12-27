@@ -61,6 +61,7 @@ partial class YmsDbContextModelSnapshot : ModelSnapshot
             b.Property<string>("FirstName").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)");
             b.Property<string>("LastName").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)");
             b.Property<string>("Phone").HasMaxLength(30).HasColumnType("character varying(30)");
+            b.Property<DateTime?>("UpdatedAt").HasColumnType("timestamp with time zone");
 
             b.HasKey("Id");
             b.HasIndex("Phone");
@@ -87,15 +88,48 @@ partial class YmsDbContextModelSnapshot : ModelSnapshot
             b.ToTable("GateActivities");
         });
 
+        modelBuilder.Entity("Yms.Core.Entities.GateAuditEvent", b =>
+        {
+            b.Property<Guid>("Id").HasColumnType("uuid");
+            b.Property<string>("Action").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)");
+            b.Property<Guid>("ActorUserId").HasColumnType("uuid");
+            b.Property<string>("ActorRole").IsRequired().HasMaxLength(50).HasColumnType("character varying(50)");
+            b.Property<DateTime>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<string>("DetailsJson").HasColumnType("text");
+            b.Property<string>("DockOrParking").HasMaxLength(120).HasColumnType("character varying(120)");
+            b.Property<Guid?>("DriverId").HasColumnType("uuid");
+            b.Property<string>("GateName").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)");
+            b.Property<DateTime>("OccurredAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<string>("Outcome").IsRequired().HasMaxLength(80).HasColumnType("character varying(80)");
+            b.Property<string>("SealNumber").HasMaxLength(60).HasColumnType("character varying(60)");
+            b.Property<string>("TrailerNumber").HasMaxLength(60).HasColumnType("character varying(60)");
+            b.Property<DateTime?>("UpdatedAt").HasColumnType("timestamp with time zone");
+            b.Property<Guid?>("VehicleId").HasColumnType("uuid");
+
+            b.HasKey("Id");
+            b.HasIndex("Action");
+            b.HasIndex("DriverId");
+            b.HasIndex("GateName");
+            b.HasIndex("OccurredAtUtc");
+            b.HasIndex("VehicleId");
+
+            b.ToTable("GateAuditEvents");
+        });
+
         modelBuilder.Entity("Yms.Core.Entities.User", b =>
         {
             b.Property<Guid>("Id").HasColumnType("uuid");
             b.Property<DateTime>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<string>("FullName").IsRequired().HasMaxLength(100).HasColumnType("character varying(100)");
             b.Property<string>("Email").IsRequired().HasMaxLength(254).HasColumnType("character varying(254)");
+            b.Property<bool>("IsActive").HasColumnType("boolean");
+            b.Property<DateTime?>("LastLogin").HasColumnType("timestamp with time zone");
             b.Property<byte[]>("PasswordHash").IsRequired().HasColumnType("bytea");
             b.Property<int>("PasswordIterations").HasColumnType("integer");
             b.Property<byte[]>("PasswordSalt").IsRequired().HasColumnType("bytea");
-            b.Property<int>("Role").HasColumnType("integer");
+            b.Property<string>("Phone").IsRequired().HasMaxLength(20).HasColumnType("character varying(20)");
+            b.Property<string>("Role").IsRequired().HasMaxLength(50).HasColumnType("character varying(50)");
+            b.Property<DateTime?>("UpdatedAt").HasColumnType("timestamp with time zone");
             b.Property<string>("Username").IsRequired().HasMaxLength(50).HasColumnType("character varying(50)");
 
             b.HasKey("Id");
@@ -191,6 +225,19 @@ partial class YmsDbContextModelSnapshot : ModelSnapshot
                 .OnDelete(DeleteBehavior.SetNull);
 
             b.HasOne("Yms.Core.Entities.Vehicle", "Vehicle")
+                .WithMany()
+                .HasForeignKey("VehicleId")
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity("Yms.Core.Entities.GateAuditEvent", b =>
+        {
+            b.HasOne("Yms.Core.Entities.Driver", null)
+                .WithMany()
+                .HasForeignKey("DriverId")
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasOne("Yms.Core.Entities.Vehicle", null)
                 .WithMany()
                 .HasForeignKey("VehicleId")
                 .OnDelete(DeleteBehavior.SetNull);

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("yms-backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6498f1cca568cc5988b58f6b7ecef47563f3cc91")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3ee0dfdc2c893861581034095e331183f2524717")]
 [assembly: System.Reflection.AssemblyProductAttribute("yms-backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("yms-backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
