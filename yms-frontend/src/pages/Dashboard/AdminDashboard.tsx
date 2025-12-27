@@ -17,6 +17,7 @@ import {
 } from './components/Icons';
 
 import { UserManagementPage } from '../UsersManagement/UserManagementPage';
+import { AppointmentsPage } from '../Appointments/AppointmentsPage';
 
 import './AdminDashboard.css';
 
@@ -114,7 +115,7 @@ export default function AdminDashboard() {
             <Route path="vehicles" element={<PlaceholderPage title="Vehicles" />} />
             <Route path="gate-operations" element={<PlaceholderPage title="Gate Operations" />} />
             <Route path="dock-management" element={<PlaceholderPage title="Dock Management" />} />
-            <Route path="appointments" element={<PlaceholderPage title="Appointments" />} />
+            <Route path="appointments" element={<AppointmentsPage />} />
             <Route path="users" element={<UserManagementPage />} />
             <Route path="activities" element={<PlaceholderPage title="Activities" />} />
             <Route path="settings" element={<PlaceholderPage title="Settings" />} />

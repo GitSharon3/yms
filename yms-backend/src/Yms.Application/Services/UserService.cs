@@ -245,6 +245,12 @@ public sealed class UserService : IUserService
             existingUser.UpdatedAt = DateTime.UtcNow;
 
             var updatedUser = await _userRepository.UpdateUserAsync(existingUser, cancellationToken);
+            if (updatedUser is null)
+            {
+                _logger.LogWarning("UpdateUserAsync returned null for user with ID: {UserId}", id);
+                throw new InvalidOperationException("Failed to update user");
+            }
+
             var userDto = _mapper.Map<Yms.Core.Dtos.Users.UserDto>(updatedUser);
 
             _logger.LogInformation("Successfully updated user with ID: {UserId}", updatedUser.Id);
