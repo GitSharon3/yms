@@ -42,6 +42,10 @@
   transition: all 0.2s ease;
 }
 
+.gateSelect {
+  padding-right: 2rem;
+}
+
 .gateInput:focus,
 .gateSelect:focus {
   border-color: rgba(37, 99, 235, 0.5);

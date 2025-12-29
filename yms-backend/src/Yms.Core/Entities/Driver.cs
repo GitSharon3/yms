@@ -4,6 +4,9 @@ namespace Yms.Core.Entities;
 
 public sealed class Driver : EntityBase
 {
+    public Guid? UserId { get; set; }
+    public User? User { get; set; }
+
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
 

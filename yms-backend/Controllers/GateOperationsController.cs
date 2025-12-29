@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using System.Linq;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -105,7 +106,7 @@ public sealed class GateOperationsController : ControllerBase
             sealNumber: request.SealNumber,
             dockOrParking: request.DockOrParking,
             outcome: "Allowed",
-            setVehicleStatus: VehicleStatus.InQueue,
+            setVehicleStatus: VehicleStatus.GateCheckIn,
             details: request,
             cancellationToken: cancellationToken);
     }
@@ -124,7 +125,7 @@ public sealed class GateOperationsController : ControllerBase
             sealNumber: request.SealNumber,
             dockOrParking: request.DockOrParking,
             outcome: "Allowed",
-            setVehicleStatus: VehicleStatus.Departed,
+            setVehicleStatus: VehicleStatus.GateCheckOut,
             details: request,
             cancellationToken: cancellationToken);
     }
@@ -143,7 +144,7 @@ public sealed class GateOperationsController : ControllerBase
             sealNumber: null,
             dockOrParking: request.DockOrParking,
             outcome: "Confirmed",
-            setVehicleStatus: VehicleStatus.AtDock,
+            setVehicleStatus: VehicleStatus.DockAssigned,
             details: request,
             cancellationToken: cancellationToken);
     }
@@ -216,10 +217,28 @@ public sealed class GateOperationsController : ControllerBase
         var (actorUserId, actorRole) = GetActor();
 
         var vehicle = await UpsertVehicleAsync(vehicleNumber, cancellationToken);
+
+        if (vehicle.IsOnHold && (activityType == GateActivityType.MovedToDock || activityType == GateActivityType.CheckOut))
+        {
+            return BadRequest(new { message = "Vehicle is on hold. Release hold before movement or exit." });
+        }
+
+        var fromStatus = vehicle.Status;
         vehicle.Status = setVehicleStatus;
+        vehicle.UpdatedAt = nowUtc;
+
+        if (!string.IsNullOrWhiteSpace(trailerNumber))
+        {
+            vehicle.TrailerNumber = trailerNumber.Trim();
+        }
 
         Driver? driver = null;
-        if (!string.IsNullOrWhiteSpace(driverName))
+        if (actorRole == nameof(UserRole.Driver))
+        {
+            driver = await UpsertDriverForUserAsync(actorUserId, driverName, cancellationToken);
+            vehicle.DriverId = driver.Id;
+        }
+        else if (!string.IsNullOrWhiteSpace(driverName))
         {
             driver = await UpsertDriverAsync(driverName!, cancellationToken);
             vehicle.DriverId = driver.Id;
@@ -256,6 +275,21 @@ public sealed class GateOperationsController : ControllerBase
 
         _db.GateActivities.Add(activity);
         _db.GateAuditEvents.Add(audit);
+
+        _db.VehicleAuditLogs.Add(new VehicleAuditLog
+        {
+            Id = Guid.NewGuid(),
+            VehicleId = vehicle.Id,
+            ActorUserId = actorUserId,
+            ActorRole = actorRole,
+            EventType = $"Gate:{action}",
+            FromStatus = fromStatus,
+            ToStatus = setVehicleStatus,
+            DetailsJson = JsonSerializer.Serialize(details),
+            OccurredAtUtc = nowUtc,
+            CreatedAtUtc = nowUtc
+        });
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return Ok(new GateActionResultDto($"{action} recorded", vehicle.Id, driver?.Id, nowUtc));
@@ -273,7 +307,7 @@ public sealed class GateOperationsController : ControllerBase
             Id = Guid.NewGuid(),
             VehicleNumber = vn,
             Type = VehicleType.ContainerTruck,
-            Status = VehicleStatus.InQueue,
+            Status = VehicleStatus.PreArrival,
             CreatedAtUtc = nowUtc
         };
 
@@ -296,6 +330,42 @@ public sealed class GateOperationsController : ControllerBase
         var created = new Driver
         {
             Id = Guid.NewGuid(),
+            FirstName = first,
+            LastName = last,
+            CreatedAtUtc = nowUtc
+        };
+
+        _db.Drivers.Add(created);
+        await _db.SaveChangesAsync(cancellationToken);
+        return created;
+    }
+
+    private async Task<Driver> UpsertDriverForUserAsync(Guid userId, string? driverName, CancellationToken cancellationToken)
+    {
+        var existing = await _db.Drivers.FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+        if (existing != null)
+        {
+            if (!string.IsNullOrWhiteSpace(driverName))
+            {
+                var parts = driverName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                existing.FirstName = parts.Length > 0 ? parts[0] : existing.FirstName;
+                existing.LastName = parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : existing.LastName;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+
+            return existing;
+        }
+
+        var name = string.IsNullOrWhiteSpace(driverName) ? "Driver" : driverName.Trim();
+        var nameParts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var first = nameParts.Length > 0 ? nameParts[0] : name;
+        var last = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : "";
+
+        var nowUtc = DateTime.UtcNow;
+        var created = new Driver
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
             FirstName = first,
             LastName = last,
             CreatedAtUtc = nowUtc

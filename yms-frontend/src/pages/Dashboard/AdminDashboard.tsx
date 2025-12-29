@@ -19,7 +19,8 @@ import {
 
 import { UserManagementPage } from '../UsersManagement/UserManagementPage';
 import { AppointmentsPage } from '../Appointments/AppointmentsPage';
-import { GateOperationsPage } from '../GateOperations/GateOperationsPage';
+import { GateOperationsPage } from '../Gate/GateOperationsPage';
+import { VehiclesPage } from '../Vehicles/VehiclesPage';
 
 import './AdminDashboard.css';
 
@@ -41,6 +42,11 @@ const NAV: NavItem[] = [
   { to: 'settings', label: 'Settings', icon: <IconSettings /> },
 ];
 
+function firstAllowedRoute(role: string) {
+  const first = NAV.find((i) => canSeeNavItem(role, i.to));
+  return first?.to ?? '';
+}
+
 function initials(name: string) {
   const parts = name
     .split(/\s+/)
@@ -56,6 +62,7 @@ export default function AdminDashboard() {
   const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '(same origin)';
   const { user, logout } = useAuth();
   const role = user?.role ?? '';
+  const fallbackTo = firstAllowedRoute(role);
 
   return (
     <div className="ymsShell">
@@ -113,16 +120,34 @@ export default function AdminDashboard() {
 
         <main className="ymsContent">
           <Routes>
-            <Route index element={<OverviewDashboard />} />
-            <Route path="yard-map" element={<PlaceholderPage title="Yard Map" />} />
-            <Route path="vehicles" element={<PlaceholderPage title="Vehicles" />} />
-            <Route path="gate-operations" element={<GateOperationsPage />} />
-            <Route path="dock-management" element={<PlaceholderPage title="Dock Management" />} />
-            <Route path="appointments" element={<AppointmentsPage />} />
-            <Route path="users" element={<UserManagementPage />} />
-            <Route path="activities" element={<PlaceholderPage title="Activities" />} />
-            <Route path="settings" element={<PlaceholderPage title="Settings" />} />
-            <Route path="*" element={<Navigate to="." replace />} />
+            <Route index element={canSeeNavItem(role, '') ? <OverviewDashboard /> : <Navigate to={fallbackTo} replace />} />
+            <Route
+              path="yard-map"
+              element={canSeeNavItem(role, 'yard-map') ? <PlaceholderPage title="Yard Map" /> : <Navigate to={fallbackTo} replace />}
+            />
+            <Route path="vehicles" element={canSeeNavItem(role, 'vehicles') ? <VehiclesPage /> : <Navigate to={fallbackTo} replace />} />
+            <Route
+              path="gate-operations"
+              element={canSeeNavItem(role, 'gate-operations') ? <GateOperationsPage /> : <Navigate to={fallbackTo} replace />}
+            />
+            <Route
+              path="dock-management"
+              element={canSeeNavItem(role, 'dock-management') ? <PlaceholderPage title="Dock Management" /> : <Navigate to={fallbackTo} replace />}
+            />
+            <Route
+              path="appointments"
+              element={canSeeNavItem(role, 'appointments') ? <AppointmentsPage /> : <Navigate to={fallbackTo} replace />}
+            />
+            <Route path="users" element={canSeeNavItem(role, 'users') ? <UserManagementPage /> : <Navigate to={fallbackTo} replace />} />
+            <Route
+              path="activities"
+              element={canSeeNavItem(role, 'activities') ? <PlaceholderPage title="Activities" /> : <Navigate to={fallbackTo} replace />}
+            />
+            <Route
+              path="settings"
+              element={canSeeNavItem(role, 'settings') ? <PlaceholderPage title="Settings" /> : <Navigate to={fallbackTo} replace />}
+            />
+            <Route path="*" element={<Navigate to={fallbackTo} replace />} />
           </Routes>
         </main>
       </div>

@@ -6,10 +6,53 @@
   margin-bottom: 0.9rem;
 }
 
+.umToolbarGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: flex-end;
+  padding: 0.55rem;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.umControl {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 140px;
+}
+
+.umControlLabel {
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(15, 23, 42, 0.55);
+}
+
 .umHeaderActions {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+
+.umBtnCta {
+  height: 40px;
+  padding: 0 1.05rem;
+  border-radius: 14px;
+}
+
+.umBtnIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.55rem;
+}
+
+.umBtnCta:hover {
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22);
 }
 
 .umSearchWrap {
@@ -74,6 +117,10 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
+.umSearch:focus-visible {
+  outline: none;
+}
+
 .umSearchWrap:focus-within .umSearchIcon {
   color: rgba(37, 99, 235, 0.8);
 }
@@ -90,6 +137,11 @@
   transition: all 0.2s ease;
 }
 
+.umSelectInline:focus {
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
 .umBtn {
   height: 38px;
   padding: 0 0.9rem;
@@ -100,6 +152,11 @@
   color: rgba(15, 23, 42, 0.8);
   font-weight: 800;
   transition: all 0.2s ease;
+}
+
+.umBtn:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.02);
+  border-color: rgba(15, 23, 42, 0.18);
 }
 
 .umBtn:active:not(:disabled) {
@@ -141,6 +198,7 @@
 }
 
 .umTableWrap {
+  width: 100%;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 14px;
   overflow: hidden;
@@ -157,10 +215,12 @@
 }
 
 .umTableHeader {
-  background: rgba(15, 23, 42, 0.03);
-  font-size: 0.85rem;
+  background: rgba(15, 23, 42, 0.05);
+  font-size: 0.82rem;
   font-weight: 900;
-  color: rgba(15, 23, 42, 0.65);
+  color: rgba(15, 23, 42, 0.72);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
 }
 
 .umTableRow {
@@ -171,8 +231,8 @@
 }
 
 .umTableRow:hover {
-  background: rgba(37, 99, 235, 0.02);
-  transform: translateX(2px);
+  background: rgba(37, 99, 235, 0.03);
+  transform: translateX(1px);
 }
 
 .umActionsHead {
@@ -196,6 +256,47 @@
   background: rgba(15, 23, 42, 0.02);
   color: rgba(15, 23, 42, 0.6);
   transition: all 0.2s ease;
+}
+
+.umActionBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.umActionBtn[data-tooltip] {
+  position: relative;
+}
+
+.umActionBtn[data-tooltip]:hover::after,
+.umActionBtn[data-tooltip]:focus-visible::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.35rem 0.55rem;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.umActionBtn[data-tooltip]:hover::before,
+.umActionBtn[data-tooltip]:focus-visible::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(15, 23, 42, 0.92);
+  pointer-events: none;
+  z-index: 5;
 }
 
 .umActionBtn:hover {
@@ -305,7 +406,7 @@
 }
 
 .umModal {
-  width: min(720px, 100%);
+  width: min(920px, 100%);
   border-radius: 18px;
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.12);
@@ -403,17 +504,53 @@
 
 .badge {
   display: inline-block;
-  padding: 0.25rem 0.65rem;
+  padding: 0.28rem 0.6rem;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   transition: all 0.2s ease;
+}
+
+.badge.success {
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  color: rgba(21, 128, 61, 0.95);
+}
+
+.badge.danger {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  color: rgba(185, 28, 28, 0.95);
+}
+
+.badge.warn {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: rgba(180, 83, 9, 0.95);
+}
+
+.badge.info {
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  color: rgba(29, 78, 216, 0.95);
+}
+
+.badge.neutral {
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  color: rgba(15, 23, 42, 0.75);
 }
 
 .badge:hover {
   transform: scale(1.05);
+}
+
+@media (hover: none) {
+  .badge:hover {
+    transform: none;
+  }
 }
 
 .umInput,
@@ -471,6 +608,15 @@
 }
 
 @media (max-width: 780px) {
+  .umToolbarGroup {
+    width: 100%;
+  }
+
+  .umControl {
+    min-width: 0;
+    flex: 1;
+  }
+
   .umFormGrid {
     grid-template-columns: 1fr;
   }

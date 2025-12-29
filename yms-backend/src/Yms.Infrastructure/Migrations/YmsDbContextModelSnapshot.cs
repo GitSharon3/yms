@@ -145,8 +145,11 @@ partial class YmsDbContextModelSnapshot : ModelSnapshot
             b.Property<DateTime>("CreatedAtUtc").HasColumnType("timestamp with time zone");
             b.Property<Guid?>("DockId").HasColumnType("uuid");
             b.Property<Guid?>("DriverId").HasColumnType("uuid");
+            b.Property<string>("HoldReason").HasMaxLength(250).HasColumnType("character varying(250)");
+            b.Property<bool>("IsOnHold").HasColumnType("boolean");
             b.Property<int>("Status").HasColumnType("integer");
             b.Property<int>("Type").HasColumnType("integer");
+            b.Property<DateTime?>("UpdatedAt").HasColumnType("timestamp with time zone");
             b.Property<string>("VehicleNumber").IsRequired().HasMaxLength(40).HasColumnType("character varying(40)");
             b.Property<Guid?>("YardSectionId").HasColumnType("uuid");
 
@@ -158,6 +161,26 @@ partial class YmsDbContextModelSnapshot : ModelSnapshot
             b.HasIndex("YardSectionId");
 
             b.ToTable("Vehicles");
+        });
+
+        modelBuilder.Entity("Yms.Core.Entities.VehicleAssignment", b =>
+        {
+            b.Property<Guid>("Id").HasColumnType("uuid");
+            b.Property<string>("AssignmentRole").IsRequired().HasMaxLength(30).HasColumnType("character varying(30)");
+            b.Property<DateTime>("AssignedAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<DateTime>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<bool>("IsActive").HasColumnType("boolean");
+            b.Property<DateTime?>("UnassignedAtUtc").HasColumnType("timestamp with time zone");
+            b.Property<DateTime?>("UpdatedAt").HasColumnType("timestamp with time zone");
+            b.Property<Guid>("UserId").HasColumnType("uuid");
+            b.Property<Guid>("VehicleId").HasColumnType("uuid");
+
+            b.HasKey("Id");
+            b.HasIndex("IsActive");
+            b.HasIndex("UserId");
+            b.HasIndex("VehicleId");
+
+            b.ToTable("VehicleAssignments");
         });
 
         modelBuilder.Entity("Yms.Core.Entities.Yard", b =>
@@ -259,6 +282,24 @@ partial class YmsDbContextModelSnapshot : ModelSnapshot
                 .WithMany("Vehicles")
                 .HasForeignKey("YardSectionId")
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity("Yms.Core.Entities.VehicleAssignment", b =>
+        {
+            b.HasOne("Yms.Core.Entities.User", "User")
+                .WithMany()
+                .HasForeignKey("UserId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+
+            b.HasOne("Yms.Core.Entities.Vehicle", "Vehicle")
+                .WithMany()
+                .HasForeignKey("VehicleId")
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+
+            b.Navigation("User");
+            b.Navigation("Vehicle");
         });
 
         modelBuilder.Entity("Yms.Core.Entities.YardSection", b =>

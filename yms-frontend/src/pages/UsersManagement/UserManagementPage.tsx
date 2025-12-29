@@ -230,7 +230,7 @@ function UserFormModal({
       <div className="umFormGrid">
         <label className="umField">
           <div className="umLabel">Full Name</div>
-          <input className="umInput" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" />
+          <input className="umInput" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ram Pandit" />
         </label>
 
         <label className="umField">
@@ -240,18 +240,18 @@ function UserFormModal({
             inputMode="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="john.doe@example.com"
+            placeholder="ram.pandit@example.com"
           />
         </label>
 
         <label className="umField">
           <div className="umLabel">Phone</div>
-          <input className="umInput" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 123-4567" />
+          <input className="umInput" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+977 97XXXXXXXX" />
         </label>
 
         <label className="umField">
           <div className="umLabel">Username</div>
-          <input className="umInput" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="john.doe" />
+          <input className="umInput" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="ram.pandit" />
         </label>
 
         <label className="umField">
@@ -331,7 +331,23 @@ export function UserManagementPage() {
     return null;
   }, [status]);
 
-  const totalPages = data?.totalPages ?? 1;
+  const totalCount = useMemo(() => {
+    const fromHeader = data?.totalCount ?? 0;
+    if (Number.isFinite(fromHeader) && fromHeader > 0) return fromHeader;
+    const itemsCount = data?.items?.length ?? 0;
+    return itemsCount > 0 ? itemsCount : 0;
+  }, [data?.items?.length, data?.totalCount]);
+  const totalPages = useMemo(() => {
+    const fromHeader = data?.totalPages ?? 0;
+    if (Number.isFinite(fromHeader) && fromHeader > 0) return fromHeader;
+    if (totalCount > 0) return Math.max(1, Math.ceil(totalCount / Math.max(1, pageSize)));
+    return 1;
+  }, [data?.totalPages, pageSize, totalCount]);
+
+  const canPrev = page > 1;
+  const canNext = page < totalPages;
+  const pageStart = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const pageEnd = totalCount === 0 ? 0 : Math.min(totalCount, (page - 1) * pageSize + (data?.items?.length ?? 0));
 
   function closeModal() {
     setModal('none');
@@ -348,17 +364,23 @@ export function UserManagementPage() {
     setModal('edit');
   }
 
-  async function refresh() {
+  async function refresh(params?: { nextPage?: number; nextPageSize?: number; nextQuery?: string; nextRole?: string; nextIsActive?: boolean | null }) {
     setLoading(true);
     setError(null);
 
+    const nextPage = params?.nextPage ?? page;
+    const nextPageSize = params?.nextPageSize ?? pageSize;
+    const nextQuery = params?.nextQuery ?? query;
+    const nextRole = params?.nextRole ?? role;
+    const nextIsActive = params?.nextIsActive ?? isActiveFilter;
+
     try {
       const res = await usersApi.getUsers({
-        page,
-        pageSize,
-        search: query,
-        role: role || undefined,
-        isActive: isActiveFilter,
+        page: nextPage,
+        pageSize: nextPageSize,
+        search: nextQuery,
+        role: nextRole || undefined,
+        isActive: nextIsActive,
       });
       setData(res);
     } catch (e) {
@@ -374,9 +396,15 @@ export function UserManagementPage() {
   }, [page, pageSize, role, isActiveFilter]);
 
   useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  useEffect(() => {
     const t = window.setTimeout(() => {
       setPage(1);
-      void refresh();
+      void refresh({ nextPage: 1, nextQuery: query });
     }, 350);
     return () => window.clearTimeout(t);
   }, [query]);
@@ -447,12 +475,20 @@ export function UserManagementPage() {
       <div className="ymsPageHeader">
         <div>
           <div className="ymsPageTitle">User Management</div>
-          <div className="ymsPageSub">Create, view, edit, and activate/deactivate user accounts (soft delete).</div>
+          <div className="ymsPageSub">Manage roles and access for gate, yard, and logistics operations across your site.</div>
         </div>
 
         <div className="umHeaderActions">
-          <button className="umBtn umBtnPrimary" onClick={openCreate}>
-            + Add User
+          <button className="umBtn umBtnPrimary umBtnCta" onClick={openCreate}>
+            <span className="umBtnIcon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="8.5" cy="7" r="4"/>
+                <line x1="20" y1="8" x2="20" y2="14"/>
+                <line x1="23" y1="11" x2="17" y2="11"/>
+              </svg>
+            </span>
+            Add User
           </button>
         </div>
       </div>
@@ -478,52 +514,65 @@ export function UserManagementPage() {
             )}
           </div>
 
-          <select
-            className="umSelectInline"
-            value={role}
-            onChange={(e) => {
-              setPage(1);
-              setRole(e.target.value);
-            }}
-            aria-label="Filter by role"
-          >
-            <option value="">All Roles</option>
-            {ROLE_OPTIONS.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
+          <div className="umToolbarGroup" role="group" aria-label="Filters">
+            <label className="umControl">
+              <div className="umControlLabel">Role</div>
+              <select
+                className="umSelectInline"
+                value={role}
+                onChange={(e) => {
+                  setPage(1);
+                  setRole(e.target.value);
+                }}
+                aria-label="Filter by role"
+              >
+                <option value="">All Roles</option>
+                {ROLE_OPTIONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <select
-            className="umSelectInline"
-            value={status}
-            onChange={(e) => {
-              setPage(1);
-              setStatus(e.target.value as 'all' | 'active' | 'inactive');
-            }}
-            aria-label="Filter by status"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
+            <label className="umControl">
+              <div className="umControlLabel">Status</div>
+              <select
+                className="umSelectInline"
+                value={status}
+                onChange={(e) => {
+                  setPage(1);
+                  setStatus(e.target.value as 'all' | 'active' | 'inactive');
+                }}
+                aria-label="Filter by status"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </label>
 
-          <select
-            className="umSelectInline"
-            value={String(pageSize)}
-            onChange={(e) => {
-              setPage(1);
-              setPageSize(Number(e.target.value));
-            }}
-            aria-label="Page size"
-          >
-            {[10, 20, 50].map((n) => (
-              <option key={n} value={String(n)}>
-                {n} / page
-              </option>
-            ))}
-          </select>
+            <label className="umControl">
+              <div className="umControlLabel">Rows</div>
+              <select
+                className="umSelectInline"
+                value={String(pageSize)}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  setPage(1);
+                  setPageSize(next);
+                  void refresh({ nextPage: 1, nextPageSize: next });
+                }}
+                aria-label="Page size"
+              >
+                {[10, 20, 50].map((n) => (
+                  <option key={n} value={String(n)}>
+                    {n} / page
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </div>
 
         {error && <div className="ymsError">{error}</div>}
@@ -563,19 +612,31 @@ export function UserManagementPage() {
                     <span className={statusBadgeClass(u.isActive)}>{u.isActive ? 'Active' : 'Inactive'}</span>
                   </div>
                   <div className="umActions">
-                    <button className="umIconBtn umActionBtn" onClick={() => openView(u)} title="View user details">
+                    <button
+                      className="umIconBtn umActionBtn"
+                      onClick={() => openView(u)}
+                      title="View user details"
+                      aria-label="View user"
+                      data-tooltip="View"
+                    >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                       </svg>
                     </button>
-                    <button className="umIconBtn umActionBtn" onClick={() => openEdit(u)} title="Edit user">
+                    <button className="umIconBtn umActionBtn" onClick={() => openEdit(u)} title="Edit user" aria-label="Edit user" data-tooltip="Edit">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                       </svg>
                     </button>
-                    <button className={`umIconBtn umActionBtn ${u.isActive ? 'umDangerBtn' : ''}`} onClick={() => openStatus(u)} title={u.isActive ? 'Deactivate user' : 'Activate user'}>
+                    <button
+                      className={`umIconBtn umActionBtn ${u.isActive ? 'umDangerBtn' : ''}`}
+                      onClick={() => openStatus(u)}
+                      title={u.isActive ? 'Deactivate user' : 'Activate user'}
+                      aria-label={u.isActive ? 'Deactivate user' : 'Activate user'}
+                      data-tooltip={u.isActive ? 'Deactivate' : 'Activate'}
+                    >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         {u.isActive ? (
                           <>
@@ -599,22 +660,24 @@ export function UserManagementPage() {
         )}
 
         <div className="umPager">
-          <div className="umPagerMeta" />
+          <div className="umPagerMeta">
+            {totalCount === 0 ? '0 users' : `Showing ${pageStart}–${pageEnd} of ${totalCount}`}
+          </div>
 
           <div className="umPagerControls">
-            <button className="umBtn" onClick={() => setPage(1)} disabled={page <= 1}>
+            <button className="umBtn" onClick={() => setPage(1)} disabled={!canPrev}>
               First
             </button>
-            <button className="umBtn" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
+            <button className="umBtn" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={!canPrev}>
               Prev
             </button>
             <div className="umPagerPage">
               Page <span className="cellStrong">{page}</span> of <span className="cellStrong">{totalPages}</span>
             </div>
-            <button className="umBtn" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
+            <button className="umBtn" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={!canNext}>
               Next
             </button>
-            <button className="umBtn" onClick={() => setPage(totalPages)} disabled={page >= totalPages}>
+            <button className="umBtn" onClick={() => setPage(totalPages)} disabled={!canNext}>
               Last
             </button>
           </div>

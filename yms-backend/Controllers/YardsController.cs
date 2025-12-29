@@ -9,7 +9,7 @@ namespace Yms.Backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = nameof(UserRole.Admin))]
+[Authorize]
 public sealed class YardsController : ControllerBase
 {
     private readonly IYardService _yards;
@@ -20,6 +20,7 @@ public sealed class YardsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.YardManager)},{nameof(UserRole.GateSecurity)},{nameof(UserRole.ViewOnly)}")]
     public async Task<ActionResult<List<YardDto>>> GetAll(CancellationToken cancellationToken)
     {
         var yards = await _yards.GetAllAsync(cancellationToken);
@@ -27,6 +28,7 @@ public sealed class YardsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.YardManager)},{nameof(UserRole.GateSecurity)},{nameof(UserRole.ViewOnly)}")]
     public async Task<ActionResult<YardDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var yard = await _yards.GetByIdAsync(id, cancellationToken);
@@ -39,6 +41,7 @@ public sealed class YardsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<ActionResult<YardDto>> Create([FromBody] CreateYardRequestDto request, CancellationToken cancellationToken)
     {
         var yard = await _yards.CreateAsync(request, cancellationToken);
@@ -46,6 +49,7 @@ public sealed class YardsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<ActionResult<YardDto>> Update(Guid id, [FromBody] UpdateYardRequestDto request, CancellationToken cancellationToken)
     {
         var yard = await _yards.UpdateAsync(id, request, cancellationToken);
@@ -58,6 +62,7 @@ public sealed class YardsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var ok = await _yards.DeleteAsync(id, cancellationToken);

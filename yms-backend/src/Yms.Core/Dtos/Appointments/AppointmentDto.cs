@@ -6,6 +6,10 @@ public sealed record AppointmentHistoryItemDto(AppointmentStatus Status, DateTim
 
 public sealed record AppointmentDto(
     string Id,
+    string Code,
+    string YardId,
+    string? DockId,
+    string? VehicleId,
     AppointmentStatus Status,
     DateTime ScheduledStartUtc,
     DateTime ScheduledEndUtc,

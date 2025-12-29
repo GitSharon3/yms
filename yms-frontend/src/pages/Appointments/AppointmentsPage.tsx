@@ -1,15 +1,43 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { Badge } from '../Dashboard/components/Badge';
 import { DashboardCard } from '../Dashboard/components/DashboardCard';
-import { getAppointments, type AppointmentDto } from '../../api/appointments';
+import {
+  createAppointment,
+  deleteAppointment,
+  getAppointments,
+  updateAppointment,
+  type AppointmentDto,
+  type AppointmentPriority,
+} from '../../api/appointments';
+import { getDocks, type DockDto } from '../../api/docks';
+import { getVehicles, type VehicleDto } from '../../api/vehicles';
+import { getYards, type Yard } from '../../api/yards';
 
 import './AppointmentsPage.css';
 
-type AppointmentStatus = 'Scheduled' | 'CheckedIn' | 'Completed' | 'Missed' | 'Cancelled';
+type AppointmentStatus = 'Scheduled' | 'Rescheduled' | 'CheckedIn' | 'Completed' | 'Missed' | 'Cancelled';
+
+type AppointmentLifecycleStep = {
+  key: 'Scheduled' | 'Confirmed' | 'CheckedIn' | 'InYard' | 'Docked' | 'Completed';
+  label: string;
+};
+
+const APPOINTMENT_LIFECYCLE: AppointmentLifecycleStep[] = [
+  { key: 'Scheduled', label: 'Scheduled' },
+  { key: 'Confirmed', label: 'Confirmed' },
+  { key: 'CheckedIn', label: 'Checked In' },
+  { key: 'InYard', label: 'In Yard' },
+  { key: 'Docked', label: 'Docked' },
+  { key: 'Completed', label: 'Completed' },
+];
 
 type Appointment = {
   id: string;
+  code: string;
+  yardId: string;
+  dockId: string | null;
+  vehicleId: string | null;
   status: AppointmentStatus;
   scheduledStartUtc: string;
   scheduledEndUtc: string;
@@ -18,6 +46,7 @@ type Appointment = {
   dock: string;
   location: string;
   type: string;
+  priority: AppointmentPriority;
   notes?: string;
   history: Array<{ status: AppointmentStatus; atUtc: string; note?: string }>;
 };
@@ -32,11 +61,16 @@ type OverviewItem = {
 
 const OVERVIEW: OverviewItem[] = [
   { status: 'Scheduled', label: 'Scheduled', color: '#2563eb' },
+  { status: 'Rescheduled', label: 'Rescheduled', color: '#7c3aed' },
   { status: 'CheckedIn', label: 'Checked In', color: '#f59e0b' },
   { status: 'Completed', label: 'Completed', color: '#22c55e' },
   { status: 'Missed', label: 'Missed', color: '#ef4444' },
   { status: 'Cancelled', label: 'Cancelled', color: '#94a3b8' },
 ];
+
+function displayAppointmentId(a: { code?: string; id: string }) {
+  return a.code?.trim() ? a.code : a.id;
+}
 
 function startOfDay(d: Date) {
   const c = new Date(d);
@@ -67,6 +101,14 @@ function sameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
+function countByStatus(items: Appointment[]) {
+  const map: Partial<Record<AppointmentStatus, number>> = {};
+  items.forEach((a) => {
+    map[a.status] = (map[a.status] ?? 0) + 1;
+  });
+  return map;
+}
+
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
@@ -85,6 +127,19 @@ function formatMonthTitle(d: Date) {
 function isoDate(d: Date) {
   const pad = (v: number) => String(v).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function isoTimeLocal(d: Date) {
+  const pad = (v: number) => String(v).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function combineLocalDateTime(date: string, time: string) {
+  return new Date(`${date}T${time}:00`);
+}
+
+function sortString(a: string, b: string) {
+  return a.localeCompare(b, undefined, { sensitivity: 'base' });
 }
 
 function useAnimatedNumber(target: number, durationMs = 550) {
@@ -109,7 +164,6 @@ function useAnimatedNumber(target: number, durationMs = 550) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
 
   return value;
@@ -131,27 +185,68 @@ function OverviewCard({ item, count, active, onClick }: { item: OverviewItem; co
   );
 }
 
+function ModalShell({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
+  return (
+    <div className="apptModalOverlay" role="dialog" aria-modal="true">
+      <div className="apptModal">
+        <div className="apptModalHeader">
+          <div className="apptModalTitle">{title}</div>
+          <button className="apptModalClose" onClick={onClose} aria-label="Close" type="button">
+            ✕
+          </button>
+        </div>
+        <div className="apptModalBody">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+type AppointmentDraft = {
+  yardId: string;
+  dockId: string;
+  vehicleId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  type: string;
+  priority: AppointmentPriority;
+  status: AppointmentStatus;
+  notes: string;
+  reason: string;
+};
+
 function ActionButton({
   children,
   variant,
   onClick,
+  disabled,
+  title,
 }: {
   children: string;
   variant: 'neutral' | 'danger';
   onClick: () => void;
+  disabled?: boolean;
+  title?: string;
 }) {
   const cls = variant === 'danger' ? 'apptBtn danger' : 'apptBtn';
   return (
-    <button type="button" className={cls} onClick={onClick}>
+    <button type="button" className={cls} onClick={onClick} disabled={disabled} title={title}>
       {children}
     </button>
   );
 }
 
+function lifecycleIndexForStatus(status: AppointmentStatus) {
+  if (status === 'Scheduled') return 0;
+  if (status === 'CheckedIn') return 2;
+  if (status === 'Completed') return 5;
+  return -1;
+}
+
 export function AppointmentsPage() {
   const [view, setView] = useState<ViewMode>('calendar');
   const [query, setQuery] = useState('');
-  const [location, setLocation] = useState('All');
+  const [yardFilter, setYardFilter] = useState<string>('All');
   const [selectedDate, setSelectedDate] = useState<Date>(startOfDay(new Date()));
   const [activeStatus, setActiveStatus] = useState<AppointmentStatus | 'All'>('All');
 
@@ -161,138 +256,74 @@ export function AppointmentsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const demoAppointments = useMemo<Appointment[]>(() => {
-    const base = new Date();
-    const day = (offset: number, h1: number, m1: number, h2: number, m2: number) => {
-      const s = new Date(base);
-      s.setDate(base.getDate() + offset);
-      s.setHours(h1, m1, 0, 0);
-      const e = new Date(base);
-      e.setDate(base.getDate() + offset);
-      e.setHours(h2, m2, 0, 0);
-      return { s: s.toISOString(), e: e.toISOString() };
-    };
+  const [yards, setYards] = useState<Yard[]>([]);
+  const [docksByYard, setDocksByYard] = useState<Record<string, DockDto[]>>({});
+  const [vehicles, setVehicles] = useState<VehicleDto[]>([]);
 
-    const d0 = day(0, 8, 0, 9, 0);
-    const d1 = day(0, 10, 30, 11, 30);
-    const d2 = day(1, 14, 0, 15, 30);
-    const d3 = day(-2, 9, 0, 9, 45);
-    const d4 = day(3, 16, 0, 17, 0);
+  const [modal, setModal] = useState<'none' | 'create' | 'edit' | 'reschedule' | 'cancel'>('none');
+  const [modalBusy, setModalBusy] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [draft, setDraft] = useState<AppointmentDraft | null>(null);
 
-    return [
-      {
-        id: 'APP001',
-        status: 'Scheduled',
-        scheduledStartUtc: d0.s,
-        scheduledEndUtc: d0.e,
-        truckId: 'TRK101',
-        driver: 'John Smith',
-        dock: 'Dock 1',
-        location: 'North Yard',
-        type: 'Unloading',
-        notes: 'Requires forklift assistance upon arrival.',
-        history: [
-          { status: 'Scheduled', atUtc: day(-7, 10, 0, 10, 0).s },
-          { status: 'Scheduled', atUtc: day(-6, 14, 30, 14, 30).s, note: 'Confirmed by driver' },
-        ],
-      },
-      {
-        id: 'APP002',
-        status: 'CheckedIn',
-        scheduledStartUtc: d1.s,
-        scheduledEndUtc: d1.e,
-        truckId: 'TRK204',
-        driver: 'Ava Johnson',
-        dock: 'Dock 2',
-        location: 'North Yard',
-        type: 'Loading',
-        notes: 'Hazmat paperwork at gate.',
-        history: [
-          { status: 'Scheduled', atUtc: day(-4, 9, 0, 9, 0).s },
-          { status: 'CheckedIn', atUtc: day(0, 10, 5, 10, 5).s },
-        ],
-      },
-      {
-        id: 'APP003',
-        status: 'Completed',
-        scheduledStartUtc: d3.s,
-        scheduledEndUtc: d3.e,
-        truckId: 'TRK332',
-        driver: 'David Lee',
-        dock: 'Dock 4',
-        location: 'South Yard',
-        type: 'Unloading',
-        history: [
-          { status: 'Scheduled', atUtc: day(-10, 9, 30, 9, 30).s },
-          { status: 'CheckedIn', atUtc: day(-2, 8, 55, 8, 55).s },
-          { status: 'Completed', atUtc: day(-2, 9, 50, 9, 50).s },
-        ],
-      },
-      {
-        id: 'APP004',
-        status: 'Missed',
-        scheduledStartUtc: d2.s,
-        scheduledEndUtc: d2.e,
-        truckId: 'TRK009',
-        driver: 'Mia Patel',
-        dock: 'Dock 3',
-        location: 'South Yard',
-        type: 'Loading',
-        notes: 'No-show after grace period.',
-        history: [
-          { status: 'Scheduled', atUtc: day(-3, 12, 0, 12, 0).s },
-          { status: 'Missed', atUtc: day(1, 15, 45, 15, 45).s },
-        ],
-      },
-      {
-        id: 'APP005',
-        status: 'Cancelled',
-        scheduledStartUtc: d4.s,
-        scheduledEndUtc: d4.e,
-        truckId: 'TRK551',
-        driver: 'Noah Garcia',
-        dock: 'Dock 5',
-        location: 'West Yard',
-        type: 'Unloading',
-        notes: 'Carrier cancelled due to maintenance.',
-        history: [
-          { status: 'Scheduled', atUtc: day(-1, 8, 15, 8, 15).s },
-          { status: 'Cancelled', atUtc: day(0, 12, 0, 12, 0).s },
-        ],
-      },
-    ];
+  const dockOptionsForDraft = useMemo(() => {
+    if (!draft?.yardId) return [];
+    return docksByYard[draft.yardId] ?? [];
+  }, [docksByYard, draft?.yardId]);
+
+  type VehicleOption = { id: string; vehicleNumber: string; driverName: string | null };
+  const vehicleOptions = useMemo<VehicleOption[]>(() => {
+    return vehicles.map((v) => ({ id: v.id, vehicleNumber: v.vehicleNumber, driverName: v.driverName ?? null }));
+  }, [vehicles]);
+
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+  const ensureDocksLoaded = useCallback(
+    async (yardId: string) => {
+      if (!yardId || yardId === 'All') return;
+      if (docksByYard[yardId]) return;
+      try {
+        const items = await getDocks({ yardId, take: 250 });
+        setDocksByYard((prev) => ({ ...prev, [yardId]: items }));
+      } catch {
+        setDocksByYard((prev) => ({ ...prev, [yardId]: [] }));
+      }
+    },
+    [docksByYard],
+  );
+
+  const refreshAppointments = useCallback(async () => {
+    const items = await getAppointments({ take: 500 });
+    const mapped: Appointment[] = (items ?? []).map((a: AppointmentDto) => ({
+      id: a.id,
+      code: a.code,
+      yardId: a.yardId,
+      dockId: a.dockId,
+      vehicleId: a.vehicleId,
+      status: a.status,
+      scheduledStartUtc: a.scheduledStartUtc,
+      scheduledEndUtc: a.scheduledEndUtc,
+      truckId: a.truckId,
+      driver: a.driver,
+      dock: a.dock,
+      location: a.location,
+      type: a.type,
+      priority: 'Normal',
+      notes: a.notes,
+      history: a.history ?? [],
+    }));
+    setAppointments(mapped);
   }, []);
-
-  const [appointments, setAppointments] = useState<Appointment[]>(demoAppointments);
 
   useEffect(() => {
     let mounted = true;
     setLoading(true);
     setError(null);
 
-    void getAppointments()
-      .then((items) => {
-        if (!mounted) return;
-        const mapped: Appointment[] = (items ?? []).map((a: AppointmentDto) => ({
-          id: a.id,
-          status: a.status,
-          scheduledStartUtc: a.scheduledStartUtc,
-          scheduledEndUtc: a.scheduledEndUtc,
-          truckId: a.truckId,
-          driver: a.driver,
-          dock: a.dock,
-          location: a.location,
-          type: a.type,
-          notes: a.notes,
-          history: a.history ?? [],
-        }));
-
-        setAppointments(mapped.length > 0 ? mapped : demoAppointments);
-      })
+    void refreshAppointments()
       .catch((e) => {
         if (!mounted) return;
         setError(e instanceof Error ? e.message : 'Failed to load appointments');
-        setAppointments(demoAppointments);
+        setAppointments([]);
       })
       .finally(() => {
         if (!mounted) return;
@@ -302,11 +333,40 @@ export function AppointmentsPage() {
     return () => {
       mounted = false;
     };
-  }, [demoAppointments]);
+  }, [refreshAppointments]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    void getYards()
+      .then((items) => {
+        if (!mounted) return;
+        setYards(items ?? []);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setYards([]);
+      });
+
+    void getVehicles({ take: 500 })
+      .then((items) => {
+        if (!mounted) return;
+        setVehicles(items ?? []);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setVehicles([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const counts = useMemo(() => {
     const map: Record<AppointmentStatus, number> = {
       Scheduled: 0,
+      Rescheduled: 0,
       CheckedIn: 0,
       Completed: 0,
       Missed: 0,
@@ -324,25 +384,46 @@ export function AppointmentsPage() {
     const q = query.trim().toLowerCase();
     return appointments.filter((a) => {
       if (activeStatus !== 'All' && a.status !== activeStatus) return false;
-      if (location !== 'All' && a.location !== location) return false;
+      if (yardFilter !== 'All' && a.yardId !== yardFilter) return false;
       if (q) {
-        const hay = `${a.id} ${a.truckId} ${a.driver} ${a.dock} ${a.type}`.toLowerCase();
+        const hay = `${displayAppointmentId(a)} ${a.truckId} ${a.driver} ${a.type} ${a.location} ${a.dock}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [appointments, activeStatus, location, query]);
+  }, [appointments, activeStatus, query, yardFilter]);
+
+  const yardOptions = useMemo(() => {
+    const allowed = new Set(['North Yard', 'East Yard', 'West Yard', 'South Yard']);
+    const filteredYards = yards.filter((y) => allowed.has(y.name));
+    return [{ id: 'All', name: 'Filter by Yard' }, ...filteredYards.map((y) => ({ id: y.id, name: y.name }))];
+  }, [yards]);
+
+  const dockOptionsForFilter = useMemo(() => {
+    if (yardFilter === 'All') return [];
+    return docksByYard[yardFilter] ?? [];
+  }, [docksByYard, yardFilter]);
+
+  const [dockFilter, setDockFilter] = useState<string>('All');
 
   useEffect(() => {
-    if (!selectedId && filtered.length > 0) setSelectedId(filtered[0].id);
-  }, [filtered, selectedId]);
+    if (yardFilter !== 'All') void ensureDocksLoaded(yardFilter);
+    setDockFilter('All');
+  }, [ensureDocksLoaded, yardFilter]);
 
-  const selected = useMemo(() => filtered.find((a) => a.id === selectedId) ?? null, [filtered, selectedId]);
+  const filteredWithDock = useMemo(() => {
+    if (dockFilter === 'All') return filtered;
+    return filtered.filter((a) => a.dockId === dockFilter);
+  }, [dockFilter, filtered]);
 
-  const locations = useMemo(() => {
-    const unique = new Set(appointments.map((a) => a.location));
-    return ['All', ...Array.from(unique).sort()];
-  }, [appointments]);
+  useEffect(() => {
+    if (!selectedId && filteredWithDock.length > 0) setSelectedId(filteredWithDock[0].id);
+  }, [filteredWithDock, selectedId]);
+
+  const selected = useMemo(
+    () => filteredWithDock.find((a) => a.id === selectedId) ?? null,
+    [filteredWithDock, selectedId],
+  );
 
   const monthCursor = useMemo(() => startOfMonth(selectedDate), [selectedDate]);
 
@@ -355,15 +436,234 @@ export function AppointmentsPage() {
     return Array.from({ length: total }).map((_, i) => {
       const date = addDays(gridStart, i);
       const inMonth = date.getMonth() === monthCursor.getMonth();
-      const items = filtered.filter((a) => sameDay(new Date(a.scheduledStartUtc), date));
+      const items = filteredWithDock.filter((a) => sameDay(new Date(a.scheduledStartUtc), date));
       return { date, inMonth, items };
     });
-  }, [filtered, monthCursor]);
+  }, [filteredWithDock, monthCursor]);
+
+  type SortKey = 'date' | 'time' | 'status' | 'location';
+  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'date', dir: 'asc' });
+
+  const sortedRows = useMemo(() => {
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    const list = filteredWithDock.slice();
+    list.sort((a, b) => {
+      if (sort.key === 'status') return dir * sortString(a.status, b.status);
+      if (sort.key === 'location') return dir * sortString(a.location, b.location);
+      if (sort.key === 'time') return dir * (new Date(a.scheduledStartUtc).getTime() - new Date(b.scheduledStartUtc).getTime());
+      return dir * (new Date(a.scheduledStartUtc).getTime() - new Date(b.scheduledStartUtc).getTime());
+    });
+    return list;
+  }, [filteredWithDock, sort]);
+
+  function toggleSort(key: SortKey) {
+    setSort((prev) => {
+      if (prev.key !== key) return { key, dir: 'asc' };
+      return { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' };
+    });
+  }
+
+  function openCreate() {
+    setModalError(null);
+    setDraft({
+      yardId: '',
+      dockId: '',
+      vehicleId: '',
+      date: isoDate(selectedDate),
+      startTime: '09:00',
+      endTime: '10:00',
+      type: 'Loading',
+      priority: 'Normal',
+      status: 'Scheduled',
+      notes: '',
+      reason: '',
+    });
+    setModal('create');
+  }
+
+  function openEdit(appt: Appointment) {
+    const start = new Date(appt.scheduledStartUtc);
+    const end = new Date(appt.scheduledEndUtc);
+    setModalError(null);
+    setDraft({
+      yardId: appt.yardId,
+      dockId: appt.dockId ?? '',
+      vehicleId: appt.vehicleId ?? '',
+      date: isoDate(start),
+      startTime: isoTimeLocal(start),
+      endTime: isoTimeLocal(end),
+      type: appt.type,
+      priority: appt.priority,
+      status: appt.status,
+      notes: appt.notes ?? '',
+      reason: '',
+    });
+    void ensureDocksLoaded(appt.yardId);
+    setModal('edit');
+  }
+
+  function openReschedule(appt: Appointment) {
+    const start = new Date(appt.scheduledStartUtc);
+    const end = new Date(appt.scheduledEndUtc);
+    setModalError(null);
+    setDraft({
+      yardId: appt.yardId,
+      dockId: appt.dockId ?? '',
+      vehicleId: appt.vehicleId ?? '',
+      date: isoDate(start),
+      startTime: isoTimeLocal(start),
+      endTime: isoTimeLocal(end),
+      type: appt.type,
+      priority: appt.priority,
+      status: appt.status,
+      notes: appt.notes ?? '',
+      reason: '',
+    });
+    void ensureDocksLoaded(appt.yardId);
+    setModal('reschedule');
+  }
+
+  function openCancel(appt: Appointment) {
+    setModalError(null);
+    setSelectedId(appt.id);
+    setDraft({
+      yardId: appt.yardId,
+      dockId: appt.dockId ?? '',
+      vehicleId: appt.vehicleId ?? '',
+      date: isoDate(new Date(appt.scheduledStartUtc)),
+      startTime: isoTimeLocal(new Date(appt.scheduledStartUtc)),
+      endTime: isoTimeLocal(new Date(appt.scheduledEndUtc)),
+      type: appt.type,
+      priority: appt.priority,
+      status: appt.status,
+      notes: appt.notes ?? '',
+      reason: '',
+    });
+    setModal('cancel');
+  }
+
+  function closeModal() {
+    setModal('none');
+    setModalBusy(false);
+    setModalError(null);
+    setDraft(null);
+  }
+
+  async function saveCreate() {
+    if (!draft) return;
+    setModalBusy(true);
+    setModalError(null);
+
+    try {
+      if (!draft.yardId) throw new Error('Yard is required');
+      if (!draft.date) throw new Error('Date is required');
+      if (!draft.startTime || !draft.endTime) throw new Error('Time window is required');
+      if (!draft.type.trim()) throw new Error('Appointment type is required');
+
+      const start = combineLocalDateTime(draft.date, draft.startTime);
+      const end = combineLocalDateTime(draft.date, draft.endTime);
+      if (end.getTime() <= start.getTime()) throw new Error('End time must be after start time');
+
+      const created = await createAppointment({
+        yardId: draft.yardId,
+        dockId: draft.dockId ? draft.dockId : null,
+        vehicleId: draft.vehicleId ? draft.vehicleId : null,
+        scheduledStartUtc: start.toISOString(),
+        scheduledEndUtc: end.toISOString(),
+        cargoType: draft.type.trim(),
+        priority: draft.priority,
+        notes: draft.notes.trim() ? draft.notes.trim() : null,
+      });
+
+      await refreshAppointments();
+      setSelectedId(created.id);
+      closeModal();
+    } catch (e) {
+      setModalError(e instanceof Error ? e.message : 'Failed to save appointment');
+    } finally {
+      setModalBusy(false);
+    }
+  }
+
+  async function saveEdit() {
+    if (!draft || !selectedId) return;
+    setModalBusy(true);
+    setModalError(null);
+
+    try {
+      if (!draft.date) throw new Error('Date is required');
+      if (!draft.startTime || !draft.endTime) throw new Error('Time window is required');
+      if (!draft.type.trim()) throw new Error('Appointment type is required');
+
+      const start = combineLocalDateTime(draft.date, draft.startTime);
+      const end = combineLocalDateTime(draft.date, draft.endTime);
+      if (end.getTime() <= start.getTime()) throw new Error('End time must be after start time');
+
+      await updateAppointment(selectedId, {
+        dockId: draft.dockId ? draft.dockId : null,
+        vehicleId: draft.vehicleId ? draft.vehicleId : null,
+        scheduledStartUtc: start.toISOString(),
+        scheduledEndUtc: end.toISOString(),
+        cargoType: draft.type.trim(),
+        priority: draft.priority,
+        notes: draft.notes.trim() ? draft.notes.trim() : null,
+      });
+
+      await refreshAppointments();
+      closeModal();
+    } catch (e) {
+      setModalError(e instanceof Error ? e.message : 'Failed to update appointment');
+    } finally {
+      setModalBusy(false);
+    }
+  }
+
+  async function confirmCancel() {
+    if (!selectedId || !draft) return;
+    setModalBusy(true);
+    setModalError(null);
+    try {
+      if (!draft.reason.trim()) throw new Error('Cancellation reason is required');
+      await updateAppointment(selectedId, { status: 'Cancelled', actionNote: draft.reason.trim() });
+      await refreshAppointments();
+      closeModal();
+    } catch (e) {
+      setModalError(e instanceof Error ? e.message : 'Failed to cancel appointment');
+    } finally {
+      setModalBusy(false);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!selectedId) return;
+    const ok = window.confirm('Delete this appointment? This cannot be undone.');
+    if (!ok) return;
+
+    setModalBusy(true);
+    setModalError(null);
+    try {
+      await deleteAppointment(selectedId);
+      await refreshAppointments();
+      setSelectedId(null);
+      closeModal();
+    } catch (e) {
+      setModalError(e instanceof Error ? e.message : 'Failed to delete appointment');
+    } finally {
+      setModalBusy(false);
+    }
+  }
 
   const onSelectAppointment = (id: string) => {
     setSelectedId(id);
     setDetailsOpen(true);
   };
+
+  const actionsDisabledReason = useMemo(() => {
+    if (!selected) return null;
+    if (selected.status === 'Completed') return 'Completed appointments cannot be modified.';
+    if (selected.status === 'Cancelled') return 'Cancelled appointments cannot be modified.';
+    return null;
+  }, [selected]);
 
   return (
     <div className="ymsPage">
@@ -382,7 +682,7 @@ export function AppointmentsPage() {
             placeholder="Search…"
             className="apptSearchInput"
           />
-          <button type="button" className="apptPrimaryAction" onClick={() => setDetailsOpen(true)}>
+          <button type="button" className="apptPrimaryAction" onClick={openCreate}>
             + Add Appointment
           </button>
         </div>
@@ -408,49 +708,69 @@ export function AppointmentsPage() {
             title=""
             actions={
               <div className="apptToolbar">
-                <div className="apptToggle" role="tablist" aria-label="Appointments view">
-                  <button
-                    type="button"
-                    className={view === 'calendar' ? 'apptToggleBtn active' : 'apptToggleBtn'}
-                    onClick={() => setView('calendar')}
-                    role="tab"
-                    aria-selected={view === 'calendar'}
-                  >
-                    Calendar View
-                  </button>
-                  <button
-                    type="button"
-                    className={view === 'list' ? 'apptToggleBtn active' : 'apptToggleBtn'}
-                    onClick={() => setView('list')}
-                    role="tab"
-                    aria-selected={view === 'list'}
-                  >
-                    List View
-                  </button>
+                <div className="apptToolbarGroup" aria-label="View controls">
+                  <div className="apptToggle" role="tablist" aria-label="Appointments view">
+                    <button
+                      type="button"
+                      className={view === 'calendar' ? 'apptToggleBtn active' : 'apptToggleBtn'}
+                      onClick={() => setView('calendar')}
+                      role="tab"
+                      aria-selected={view === 'calendar'}
+                    >
+                      Calendar
+                    </button>
+                    <button
+                      type="button"
+                      className={view === 'list' ? 'apptToggleBtn active' : 'apptToggleBtn'}
+                      onClick={() => setView('list')}
+                      role="tab"
+                      aria-selected={view === 'list'}
+                    >
+                      List
+                    </button>
+                  </div>
                 </div>
 
-                <select value={location} onChange={(e) => setLocation(e.target.value)} className="apptSelect">
-                  {locations.map((l) => (
-                    <option key={l} value={l}>
-                      {l === 'All' ? 'Filter by Location' : l}
-                    </option>
-                  ))}
-                </select>
+                <div className="apptToolbarGroup" aria-label="Filters">
+                  <select value={yardFilter} onChange={(e) => setYardFilter(e.target.value)} className="apptSelect">
+                    {yardOptions.map((y) => (
+                      <option key={y.id} value={y.id}>
+                        {y.name}
+                      </option>
+                    ))}
+                  </select>
 
-                <input
-                  type="date"
-                  className="apptDate"
-                  value={isoDate(selectedDate)}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (!v) return;
-                    setSelectedDate(startOfDay(new Date(`${v}T00:00:00`)));
-                  }}
-                />
+                  <select
+                    value={dockFilter}
+                    onChange={(e) => setDockFilter(e.target.value)}
+                    className="apptSelect"
+                    disabled={yardFilter === 'All'}
+                  >
+                    <option value="All">Filter by Dock</option>
+                    {dockOptionsForFilter.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
 
-                <button type="button" className="apptIconBtn" onClick={() => setDetailsOpen((v) => !v)}>
-                  {detailsOpen ? 'Hide Details' : 'Show Details'}
-                </button>
+                  <input
+                    type="date"
+                    className="apptDate"
+                    value={isoDate(selectedDate)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (!v) return;
+                      setSelectedDate(startOfDay(new Date(`${v}T00:00:00`)));
+                    }}
+                  />
+                </div>
+
+                <div className="apptToolbarGroup" aria-label="Details panel">
+                  <button type="button" className="apptIconBtn" onClick={() => setDetailsOpen((v) => !v)}>
+                    {detailsOpen ? 'Hide Details' : 'Show Details'}
+                  </button>
+                </div>
               </div>
             }
           >
@@ -484,6 +804,13 @@ export function AppointmentsPage() {
                   ))}
                   {calendarDays.map(({ date, inMonth, items }) => {
                     const isSelected = sameDay(date, selectedDate);
+                    const isToday = sameDay(date, startOfDay(new Date()));
+                    const hasByStatus = (s: AppointmentStatus) => items.some((a) => a.status === s);
+                    const byStatus = countByStatus(items);
+                    const tooltipParts = OVERVIEW.filter((o) => (byStatus[o.status] ?? 0) > 0).map(
+                      (o) => `${o.label}: ${byStatus[o.status] ?? 0}`,
+                    );
+                    const title = items.length > 0 ? `${items.length} appointment(s)\n${tooltipParts.join('\n')}` : undefined;
                     return (
                       <button
                         type="button"
@@ -496,13 +823,26 @@ export function AppointmentsPage() {
                               : 'apptCalendarDay muted'
                         }
                         onClick={() => setSelectedDate(startOfDay(date))}
+                        title={title}
                         role="gridcell"
                         aria-selected={isSelected}
+                        data-today={isToday ? 'true' : 'false'}
                       >
                         <div className="apptCalendarDayTop">
                           <span className="apptCalendarDayNum">{date.getDate()}</span>
                           {items.length > 0 ? <span className="apptCalendarDayPill">{items.length}</span> : null}
                         </div>
+                        {items.length > 0 ? (
+                          <div className="apptCalendarDots" aria-hidden>
+                            {OVERVIEW.map((o) => (
+                              <span
+                                key={o.status}
+                                className={hasByStatus(o.status) ? 'apptCalendarDot on' : 'apptCalendarDot'}
+                                style={{ background: o.color }}
+                              />
+                            ))}
+                          </div>
+                        ) : null}
                       </button>
                     );
                   })}
@@ -513,11 +853,11 @@ export function AppointmentsPage() {
                     Appointments on{' '}
                     {selectedDate.toLocaleDateString([], { month: 'short', day: '2-digit', year: 'numeric' })}
                   </div>
-                  {filtered.filter((a) => sameDay(new Date(a.scheduledStartUtc), selectedDate)).length === 0 ? (
+                  {filteredWithDock.filter((a) => sameDay(new Date(a.scheduledStartUtc), selectedDate)).length === 0 ? (
                     <div className="emptyState">No appointments for this date.</div>
                   ) : (
                     <div className="apptList">
-                      {filtered
+                      {filteredWithDock
                         .filter((a) => sameDay(new Date(a.scheduledStartUtc), selectedDate))
                         .map((a) => (
                           <button
@@ -528,7 +868,7 @@ export function AppointmentsPage() {
                           >
                             <div>
                               <div className="apptListTitleRow">
-                                <div className="apptListTitle">{a.id}</div>
+                                <div className="apptListTitle">{displayAppointmentId(a)}</div>
                                 <div className="apptListMeta">{formatTimeRange(a.scheduledStartUtc, a.scheduledEndUtc)}</div>
                               </div>
                               <div className="apptListSub">
@@ -550,30 +890,27 @@ export function AppointmentsPage() {
               <div className={view === 'list' ? 'apptView apptViewActive' : 'apptView apptViewInactive'}>
                 <div className="apptTable">
                   <div className="apptTableHeader">
+                    <button type="button" className="apptThBtn" onClick={() => toggleSort('date')}>Date</button>
+                    <button type="button" className="apptThBtn" onClick={() => toggleSort('time')}>Time</button>
                     <div>ID</div>
-                    <div>Window</div>
-                    <div>Truck</div>
-                    <div>Driver</div>
+                    <button type="button" className="apptThBtn" onClick={() => toggleSort('location')}>Location</button>
                     <div>Dock</div>
-                    <div>Status</div>
+                    <button type="button" className="apptThBtn" onClick={() => toggleSort('status')}>Status</button>
                   </div>
-                  {filtered.length === 0 ? (
+                  {sortedRows.length === 0 ? (
                     <div className="tableEmpty">No appointments match the current filters.</div>
                   ) : (
-                    filtered
-                      .slice()
-                      .sort((a, b) => new Date(a.scheduledStartUtc).getTime() - new Date(b.scheduledStartUtc).getTime())
-                      .map((a) => (
+                    sortedRows.map((a) => (
                         <button
                           type="button"
                           key={a.id}
                           className={a.id === selectedId ? 'apptTableRow active' : 'apptTableRow'}
                           onClick={() => onSelectAppointment(a.id)}
                         >
-                          <div className="cellStrong">{a.id}</div>
+                          <div>{new Date(a.scheduledStartUtc).toLocaleDateString([], { month: 'short', day: '2-digit', year: 'numeric' })}</div>
                           <div>{formatTimeRange(a.scheduledStartUtc, a.scheduledEndUtc)}</div>
-                          <div>{a.truckId}</div>
-                          <div>{a.driver}</div>
+                          <div className="cellStrong">{displayAppointmentId(a)}</div>
+                          <div>{a.location}</div>
                           <div>{a.dock}</div>
                           <div>
                             <Badge value={a.status} />
@@ -592,72 +929,138 @@ export function AppointmentsPage() {
             <div className="apptDetailsHeader">
               <div>
                 <div className="apptDetailsTitle">Appointment Details</div>
-                <div className="apptDetailsSub">{selected ? selected.id : 'No selection'}</div>
+                <div className="apptDetailsSub">
+                  {selected ? (
+                    <span className="apptMono">{displayAppointmentId(selected)}</span>
+                  ) : (
+                    'No selection'
+                  )}
+                </div>
               </div>
               <div className="apptDetailsActions">
-                <ActionButton variant="neutral" onClick={() => {}}>
-                  Edit
-                </ActionButton>
-                <ActionButton variant="neutral" onClick={() => {}}>
-                  Reschedule
-                </ActionButton>
-                <ActionButton variant="danger" onClick={() => {}}>
-                  Cancel
+                {!actionsDisabledReason ? (
+                  <ActionButton variant="neutral" onClick={() => (selected ? openEdit(selected) : undefined)} disabled={!selected}>
+                    Edit
+                  </ActionButton>
+                ) : null}
+
+                {!actionsDisabledReason ? (
+                  <ActionButton variant="neutral" onClick={() => (selected ? openReschedule(selected) : undefined)} disabled={!selected}>
+                    Reschedule
+                  </ActionButton>
+                ) : null}
+
+                {!actionsDisabledReason ? (
+                  <ActionButton variant="danger" onClick={() => (selected ? openCancel(selected) : undefined)} disabled={!selected}>
+                    Cancel
+                  </ActionButton>
+                ) : null}
+
+                <ActionButton variant="danger" onClick={confirmDelete} disabled={!selected}>
+                  Delete
                 </ActionButton>
               </div>
             </div>
 
             {selected ? (
               <>
-                <div className="apptDetailsGrid">
-                  <div className="apptDetailField">
-                    <div className="apptDetailLabel">Status</div>
-                    <div className="apptDetailValue">
-                      <Badge value={selected.status} />
+                <div className="apptCommandTop">
+                  <div className="apptStatusRow">
+                    <div className="apptStatusLeft">
+                      <div className="apptStatusLabel">Current Status</div>
+                      <div className="apptStatusValue">
+                        <Badge value={selected.status} />
+                      </div>
+                    </div>
+                    <div className="apptStatusRight">
+                      <div className="apptStatusLabel">Scheduled Window</div>
+                      <div className="apptStatusValue">
+                        {new Date(selected.scheduledStartUtc).toLocaleDateString([], {
+                          month: 'short',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })}{' '}
+                        <span className="apptStatusSep">•</span>
+                        {formatTimeRange(selected.scheduledStartUtc, selected.scheduledEndUtc)}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="apptDetailField">
-                    <div className="apptDetailLabel">Date</div>
-                    <div className="apptDetailValue">
-                      {new Date(selected.scheduledStartUtc).toLocaleDateString([], {
-                        month: 'long',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })}
+                  <div className="apptLifecycle" aria-label="Appointment lifecycle">
+                    {selected.status === 'Missed' || selected.status === 'Cancelled' ? (
+                      <div className="apptLifecycleTerminal">
+                        <div className="apptLifecycleTerminalTitle">Terminal Status</div>
+                        <div className="apptLifecycleTerminalValue">
+                          <Badge value={selected.status} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="apptLifecycleSteps">
+                        {APPOINTMENT_LIFECYCLE.map((step, idx) => {
+                          const currentIdx = lifecycleIndexForStatus(selected.status);
+                          const state = idx < currentIdx ? 'done' : idx === currentIdx ? 'active' : 'upcoming';
+                          return (
+                            <div key={step.key} className={`apptLifecycleStep ${state}`}>
+                              <div className="apptLifecycleDot" aria-hidden />
+                              <div className="apptLifecycleLabel">{step.label}</div>
+                              {idx < APPOINTMENT_LIFECYCLE.length - 1 ? <div className="apptLifecycleLine" aria-hidden /> : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {actionsDisabledReason ? <div className="apptActionHint">{actionsDisabledReason}</div> : null}
+
+                <div className="apptDetailsSections">
+                  <div className="apptSection">
+                    <div className="apptSectionTitle">Vehicle & Driver</div>
+                    <div className="apptDetailsGrid">
+                      <div className="apptDetailField">
+                        <div className="apptDetailLabel">Truck/Vehicle ID</div>
+                        <div className="apptDetailValue apptMono">{selected.truckId}</div>
+                      </div>
+                      <div className="apptDetailField">
+                        <div className="apptDetailLabel">Assigned Driver</div>
+                        <div className="apptDetailValue">{selected.driver}</div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="apptDetailField">
-                    <div className="apptDetailLabel">Time</div>
-                    <div className="apptDetailValue">
-                      {formatTimeRange(selected.scheduledStartUtc, selected.scheduledEndUtc)}
+                  <div className="apptSection">
+                    <div className="apptSectionTitle">Yard & Dock</div>
+                    <div className="apptDetailsGrid">
+                      <div className="apptDetailField">
+                        <div className="apptDetailLabel">Location / Yard</div>
+                        <div className="apptDetailValue">{selected.location}</div>
+                      </div>
+                      <div className="apptDetailField">
+                        <div className="apptDetailLabel">Assigned Dock</div>
+                        <div className="apptDetailValue">{selected.dock}</div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="apptDetailField">
-                    <div className="apptDetailLabel">Truck/Vehicle ID</div>
-                    <div className="apptDetailValue">{selected.truckId}</div>
-                  </div>
-
-                  <div className="apptDetailField">
-                    <div className="apptDetailLabel">Driver</div>
-                    <div className="apptDetailValue">{selected.driver}</div>
-                  </div>
-
-                  <div className="apptDetailField">
-                    <div className="apptDetailLabel">Assigned Yard/Dock</div>
-                    <div className="apptDetailValue">{selected.dock}</div>
-                  </div>
-
-                  <div className="apptDetailField">
-                    <div className="apptDetailLabel">Appointment Type</div>
-                    <div className="apptDetailValue">{selected.type}</div>
-                  </div>
-
-                  <div className="apptDetailField apptDetailSpan">
-                    <div className="apptDetailLabel">Notes</div>
-                    <div className="apptDetailValue">{selected.notes ?? '—'}</div>
+                  <div className="apptSection">
+                    <div className="apptSectionTitle">Appointment</div>
+                    <div className="apptDetailsGrid">
+                      <div className="apptDetailField">
+                        <div className="apptDetailLabel">Appointment Type</div>
+                        <div className="apptDetailValue">{selected.type}</div>
+                      </div>
+                      <div className="apptDetailField">
+                        <div className="apptDetailLabel">Time Slot</div>
+                        <div className="apptDetailValue">
+                          {formatTimeRange(selected.scheduledStartUtc, selected.scheduledEndUtc)}
+                        </div>
+                      </div>
+                      <div className="apptDetailField apptDetailSpan">
+                        <div className="apptDetailLabel">Notes / Instructions</div>
+                        <div className="apptDetailValue">{selected.notes ?? '—'}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -692,6 +1095,211 @@ export function AppointmentsPage() {
           </div>
         </aside>
       </div>
+
+      {modal !== 'none' && modal !== 'cancel' && draft ? (
+        <ModalShell
+          title={
+            modal === 'create'
+              ? 'Add Appointment'
+              : modal === 'reschedule'
+                ? 'Reschedule Appointment'
+                : 'Edit Appointment'
+          }
+          onClose={closeModal}
+        >
+          <div className="apptFormGrid">
+            <label className="apptField">
+              <div className="apptLabel">Yard</div>
+              <select
+                className="apptInput"
+                value={draft.yardId}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setDraft((d) => (d ? { ...d, yardId: v, dockId: '' } : d));
+                  void ensureDocksLoaded(v);
+                }}
+                disabled={modal !== 'create'}
+              >
+                <option value="">Select yard…</option>
+                {yards
+                  .filter((y) => ['North Yard', 'East Yard', 'West Yard', 'South Yard'].includes(y.name))
+                  .map((y) => (
+                  <option key={y.id} value={y.id}>
+                    {y.name}
+                  </option>
+                  ))}
+              </select>
+            </label>
+
+            <label className="apptField">
+              <div className="apptLabel">Dock</div>
+              <select
+                className="apptInput"
+                value={draft.dockId}
+                onChange={(e) => setDraft((d) => (d ? { ...d, dockId: e.target.value } : d))}
+                disabled={!draft.yardId}
+              >
+                <option value="">No dock</option>
+                {dockOptionsForDraft.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="apptField">
+              <div className="apptLabel">Date</div>
+              <input
+                className="apptInput"
+                type="date"
+                value={draft.date}
+                onChange={(e) => setDraft((d) => (d ? { ...d, date: e.target.value } : d))}
+              />
+            </label>
+
+            <label className="apptField">
+              <div className="apptLabel">Start</div>
+              <input
+                className="apptInput"
+                type="time"
+                value={draft.startTime}
+                onChange={(e) => setDraft((d) => (d ? { ...d, startTime: e.target.value } : d))}
+              />
+            </label>
+
+            <label className="apptField">
+              <div className="apptLabel">End</div>
+              <input
+                className="apptInput"
+                type="time"
+                value={draft.endTime}
+                onChange={(e) => setDraft((d) => (d ? { ...d, endTime: e.target.value } : d))}
+              />
+            </label>
+
+            <label className="apptField">
+              <div className="apptLabel">Appointment Type</div>
+              <select
+                className="apptInput"
+                value={draft.type}
+                onChange={(e) => setDraft((d) => (d ? { ...d, type: e.target.value } : d))}
+              >
+                <option value="Loading">Loading</option>
+                <option value="Unloading">Unloading</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+
+            <label className="apptField">
+              <div className="apptLabel">Priority</div>
+              <select
+                className="apptInput"
+                value={draft.priority}
+                onChange={(e) => setDraft((d) => (d ? { ...d, priority: e.target.value as AppointmentPriority } : d))}
+              >
+                <option value="Low">Low</option>
+                <option value="Normal">Normal</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </label>
+
+            <label className="apptField">
+              <div className="apptLabel">Vehicle</div>
+              <select
+                className="apptInput"
+                value={draft.vehicleId}
+                onChange={(e) => setDraft((d) => (d ? { ...d, vehicleId: e.target.value } : d))}
+              >
+                <option value="">Unassigned</option>
+                {vehicleOptions.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.vehicleNumber} {v.driverName ? `• ${v.driverName}` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {modal !== 'create' ? (
+              <label className="apptField">
+                <div className="apptLabel">Status</div>
+                <select
+                  className="apptInput"
+                  value={draft.status}
+                  onChange={(e) => setDraft((d) => (d ? { ...d, status: e.target.value as AppointmentStatus } : d))}
+                >
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="CheckedIn">Checked In</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Missed">Missed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </label>
+            ) : (
+              <div className="apptField apptFieldGhost" aria-hidden="true">
+                <div className="apptLabel">Status</div>
+                <div className="apptInput" />
+              </div>
+            )}
+
+            <label className="apptField apptFieldSpan">
+              <div className="apptLabel">Notes</div>
+              <textarea
+                className="apptTextarea"
+                value={draft.notes}
+                onChange={(e) => setDraft((d) => (d ? { ...d, notes: e.target.value } : d))}
+                rows={4}
+              />
+            </label>
+          </div>
+
+          {modalError ? <div className="ymsError">{modalError}</div> : null}
+
+          <div className="apptModalActions">
+            <button className="apptModalBtn" onClick={closeModal} disabled={modalBusy} type="button">
+              Cancel
+            </button>
+            {modal === 'edit' ? (
+              <button className="apptModalBtn danger" onClick={confirmDelete} disabled={modalBusy} type="button">
+                {modalBusy ? 'Deleting…' : 'Delete'}
+              </button>
+            ) : null}
+            <button
+              className="apptModalBtn primary"
+              onClick={modal === 'create' ? saveCreate : saveEdit}
+              disabled={modalBusy}
+              type="button"
+            >
+              {modalBusy ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </ModalShell>
+      ) : null}
+
+      {modal === 'cancel' && selected && draft ? (
+        <ModalShell title="Cancel appointment" onClose={closeModal}>
+          <div className="apptConfirmText">This will cancel {displayAppointmentId(selected)}. Please provide a reason.</div>
+          <label className="apptField apptFieldSpan">
+            <div className="apptLabel">Reason (required)</div>
+            <textarea
+              className="apptTextarea"
+              value={draft.reason}
+              onChange={(e) => setDraft((d) => (d ? { ...d, reason: e.target.value } : d))}
+              rows={4}
+            />
+          </label>
+          {modalError ? <div className="ymsError">{modalError}</div> : null}
+          <div className="apptModalActions">
+            <button className="apptModalBtn" onClick={closeModal} disabled={modalBusy} type="button">
+              Keep Appointment
+            </button>
+            <button className="apptModalBtn danger" onClick={confirmCancel} disabled={modalBusy} type="button">
+              {modalBusy ? 'Cancelling…' : 'Cancel Appointment'}
+            </button>
+          </div>
+        </ModalShell>
+      ) : null}
     </div>
   );
 }

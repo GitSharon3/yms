@@ -1,0 +1,656 @@
+.vehHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.vehHeaderActions .vehBtn {
+  white-space: nowrap;
+}
+
+.vehLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.vehBtn {
+  height: 38px;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.8);
+  font-weight: 700;
+}
+
+.vehBtn:hover {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.vehBtn:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
+}
+
+.vehBtnPrimary {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.vehBtnPrimary:hover {
+  background: #1d4ed8;
+}
+
+.vehBtnDanger {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+}
+
+.vehBtnDanger:hover {
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.vehBtnSmall {
+  height: 34px;
+  padding: 0 0.7rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.vehBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.vehSelect {
+  height: 38px;
+  padding: 0 0.7rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  color: rgba(15, 23, 42, 0.8);
+  font-weight: 700;
+}
+
+.vehSearchWrap {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+}
+
+.vehSearchIcon {
+  position: absolute;
+  left: 0.75rem;
+  color: rgba(15, 23, 42, 0.45);
+  pointer-events: none;
+}
+
+.vehSearch {
+  width: 100%;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 0 2.25rem 0 2.2rem;
+  background: #ffffff;
+  outline: none;
+}
+
+.vehSearch:focus {
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.vehSearchClear {
+  position: absolute;
+  right: 0.55rem;
+  height: 28px;
+  width: 28px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vehLayout {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.vehTable {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.vehTableCols {
+  grid-template-columns: 48px 1.3fr 0.9fr 0.9fr 1.2fr 1fr auto;
+}
+
+.vehTableHeader,
+.vehTableRow {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  align-items: center;
+}
+
+.vehTableHeader {
+  background: rgba(15, 23, 42, 0.04);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+.vehActionsHeader {
+  text-align: right;
+}
+
+.vehTableRow {
+  background: #ffffff;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.vehTableRow:hover {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.vehTableRow:focus-within {
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.vehRowActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.vehStrong {
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.9);
+  letter-spacing: 0.2px;
+}
+
+.vehDriverName {
+  font-weight: 750;
+  color: rgba(15, 23, 42, 0.82);
+}
+
+.vehNotAssigned {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  border: 1px dashed rgba(15, 23, 42, 0.22);
+  background: rgba(15, 23, 42, 0.03);
+  color: rgba(15, 23, 42, 0.65);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.vehTableRow.active {
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.vehTableHeader.colsBasic,
+.vehTableRow.colsBasic {
+  grid-template-columns: 1.2fr 1fr 1.3fr 0.8fr;
+}
+
+.vehTableHeader.colsDriver,
+.vehTableRow.colsDriver {
+  grid-template-columns: 1.2fr 1fr 1.3fr 1.2fr 0.8fr;
+}
+
+.vehTableHeader.colsWide,
+.vehTableRow.colsWide {
+  grid-template-columns: 1.2fr 1fr 1.3fr 0.9fr 1.2fr 1.2fr 0.8fr;
+}
+
+.vehTableHeader.colsAll,
+.vehTableRow.colsAll {
+  grid-template-columns: 40px 1.05fr 0.95fr 1.3fr 0.8fr 1.1fr 1.1fr 0.75fr;
+}
+
+.vehCheckCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vehRowBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cellStrong {
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.88);
+}
+
+.vehStatusStack {
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.vehMuted {
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.vehEmptyState {
+  padding: 1rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  background: rgba(15, 23, 42, 0.015);
+}
+
+.vehEmptyTitle {
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.78);
+}
+
+.vehEmptySub {
+  margin-top: 0.25rem;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.vehDetails {
+  position: sticky;
+  top: 92px;
+}
+
+.vehDetailsInner {
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  box-shadow: 0 16px 50px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.vehDetailsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.vehDetailsActions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.vehDetailsTitle {
+  font-weight: 900;
+}
+
+.vehDetailsSub {
+  margin-top: 0.15rem;
+  color: rgba(15, 23, 42, 0.6);
+  font-size: 0.9rem;
+}
+
+.vehDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.vehDetailField {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 0.65rem 0.75rem;
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.vehDetailLabel {
+  font-size: 0.8rem;
+  color: rgba(15, 23, 42, 0.6);
+  font-weight: 800;
+}
+
+.vehDetailValue {
+  margin-top: 0.25rem;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.85);
+}
+
+.vehActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.vehActionBlock {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.vehActionTitle {
+  font-weight: 900;
+}
+
+.vehActionButtons {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.vehFormGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.vehDriverSelect {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.vehDriverCard {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.vehDriverName {
+  font-weight: 900;
+  margin-bottom: 0.35rem;
+}
+
+.vehDimRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.vehTextarea {
+  min-height: 100px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 0.7rem;
+  background: #ffffff;
+  color: rgba(15, 23, 42, 0.8);
+  font-weight: 650;
+}
+
+.vehToggleField {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vehSpan2 {
+  grid-column: span 2;
+}
+
+.vehExport {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.vehBulk {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.vehBulkRow {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.vehBulkTitle {
+  font-weight: 900;
+}
+
+.vehBulkControls {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.vehNotices {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 0.25rem 0 0.85rem;
+}
+
+.vehNotice {
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: rgba(37, 99, 235, 0.06);
+  color: rgba(37, 99, 235, 0.95);
+  font-weight: 750;
+  border-radius: 14px;
+  padding: 0.55rem 0.75rem;
+}
+
+.vehModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 50;
+}
+
+.vehModal {
+  width: min(1040px, 100%);
+  max-height: calc(100vh - 2.5rem);
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.vehModalHeader {
+  padding: 1.05rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.vehModalTitle {
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.9);
+  font-size: 1.05rem;
+}
+
+.vehIconBtn {
+  height: 38px;
+  width: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.7);
+}
+
+.vehIconBtn:hover {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.vehIconBtn:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
+}
+
+.vehModalBody {
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+.vehForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.95rem 1rem;
+}
+
+.vehModalGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.vehModalActions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.vehConfirmText {
+  color: rgba(15, 23, 42, 0.75);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.vehField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.vehLabel {
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.6);
+  font-weight: 800;
+}
+
+.vehInput {
+  height: 44px;
+  padding: 0 0.85rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  color: rgba(15, 23, 42, 0.8);
+  font-weight: 700;
+  font-size: 0.98rem;
+}
+
+.vehInput:focus {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.vehSelect {
+  height: 44px;
+  font-size: 0.98rem;
+}
+
+.vehSelect:focus {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.vehAudit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.vehAuditRow {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  padding: 0.6rem 0.7rem;
+  background: rgba(15, 23, 42, 0.02);
+}
+
+@media (max-width: 1100px) {
+  .vehLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .vehDetails {
+    position: static;
+  }
+
+  .vehTableHeader.colsAll,
+  .vehTableRow.colsAll {
+    grid-template-columns: 40px 1fr 1fr;
+  }
+
+  .vehTableHeader.colsAll > :nth-child(4),
+  .vehTableRow.colsAll > :nth-child(4),
+  .vehTableHeader.colsAll > :nth-child(5),
+  .vehTableRow.colsAll > :nth-child(5),
+  .vehTableHeader.colsAll > :nth-child(6),
+  .vehTableRow.colsAll > :nth-child(6),
+  .vehTableHeader.colsAll > :nth-child(7),
+  .vehTableRow.colsAll > :nth-child(7),
+  .vehTableHeader.colsAll > :nth-child(8),
+  .vehTableRow.colsAll > :nth-child(8) {
+    display: none;
+  }
+
+  .vehModalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .vehForm {
+    grid-template-columns: 1fr;
+  }
+
+  .vehSpan2 {
+    grid-column: auto;
+  }
+
+  .vehTableCols {
+    grid-template-columns: 40px 1.2fr 0.9fr 1fr auto;
+  }
+
+  .vehTableHeader.vehTableCols > :nth-child(3),
+  .vehTableRow.vehTableCols > :nth-child(3),
+  .vehTableHeader.vehTableCols > :nth-child(6),
+  .vehTableRow.vehTableCols > :nth-child(6) {
+    display: none;
+  }
+}

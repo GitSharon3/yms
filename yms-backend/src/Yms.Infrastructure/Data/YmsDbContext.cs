@@ -16,9 +16,12 @@ public sealed class YmsDbContext : DbContext
     public DbSet<Dock> Docks => Set<Dock>();
     public DbSet<Driver> Drivers => Set<Driver>();
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
+    public DbSet<VehicleAssignment> VehicleAssignments => Set<VehicleAssignment>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<AppointmentHistoryItem> AppointmentHistoryItems => Set<AppointmentHistoryItem>();
     public DbSet<GateActivity> GateActivities => Set<GateActivity>();
     public DbSet<GateAuditEvent> GateAuditEvents => Set<GateAuditEvent>();
+    public DbSet<VehicleAuditLog> VehicleAuditLogs => Set<VehicleAuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -94,12 +97,19 @@ public sealed class YmsDbContext : DbContext
             entity.ToTable("Drivers");
             entity.HasKey(x => x.Id);
 
+            entity.Property(x => x.UserId);
             entity.Property(x => x.FirstName).IsRequired().HasMaxLength(80);
             entity.Property(x => x.LastName).IsRequired().HasMaxLength(80);
             entity.Property(x => x.Phone).HasMaxLength(30);
             entity.Property(x => x.CreatedAtUtc).IsRequired();
 
             entity.HasIndex(x => x.Phone);
+            entity.HasIndex(x => x.UserId).IsUnique();
+
+            entity.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Vehicle>(entity =>
@@ -108,14 +118,18 @@ public sealed class YmsDbContext : DbContext
             entity.HasKey(x => x.Id);
 
             entity.Property(x => x.VehicleNumber).IsRequired().HasMaxLength(40);
+            entity.Property(x => x.TrailerNumber).HasMaxLength(60);
             entity.Property(x => x.Type).IsRequired();
             entity.Property(x => x.Status).IsRequired();
+            entity.Property(x => x.IsOnHold).IsRequired();
+            entity.Property(x => x.HoldReason).HasMaxLength(250);
             entity.Property(x => x.CreatedAtUtc).IsRequired();
 
             entity.HasIndex(x => x.VehicleNumber).IsUnique();
             entity.HasIndex(x => x.Status);
             entity.HasIndex(x => x.YardSectionId);
             entity.HasIndex(x => x.DockId);
+            entity.HasIndex(x => x.DriverId);
 
             entity.HasOne(x => x.YardSection)
                 .WithMany(x => x.Vehicles)
@@ -133,19 +147,54 @@ public sealed class YmsDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
+        modelBuilder.Entity<VehicleAssignment>(entity =>
+        {
+            entity.ToTable("VehicleAssignments");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.VehicleId).IsRequired();
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.AssignmentRole).IsRequired().HasMaxLength(30);
+            entity.Property(x => x.IsActive).IsRequired();
+            entity.Property(x => x.AssignedAtUtc).IsRequired();
+
+            entity.HasIndex(x => x.VehicleId);
+            entity.HasIndex(x => x.UserId);
+            entity.HasIndex(x => x.IsActive);
+
+            entity.HasOne(x => x.Vehicle)
+                .WithMany()
+                .HasForeignKey(x => x.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<Appointment>(entity =>
         {
             entity.ToTable("Appointments");
             entity.HasKey(x => x.Id);
 
+            entity.Property(x => x.Code).IsRequired().HasMaxLength(20);
+            entity.Property(x => x.CargoType).IsRequired().HasMaxLength(80);
+            entity.Property(x => x.Priority).IsRequired();
+            entity.Property(x => x.Notes).HasMaxLength(1000);
             entity.Property(x => x.ScheduledStartUtc).IsRequired();
             entity.Property(x => x.ScheduledEndUtc).IsRequired();
             entity.Property(x => x.Status).IsRequired();
             entity.Property(x => x.CreatedAtUtc).IsRequired();
 
+            entity.HasIndex(x => x.Code).IsUnique();
             entity.HasIndex(x => x.ScheduledStartUtc);
+            entity.HasIndex(x => x.ScheduledEndUtc);
             entity.HasIndex(x => x.Status);
+            entity.HasIndex(x => x.Priority);
             entity.HasIndex(x => x.YardId);
+            entity.HasIndex(x => x.DockId);
+            entity.HasIndex(x => x.VehicleId);
 
             entity.HasOne(x => x.Yard)
                 .WithMany()
@@ -161,6 +210,27 @@ public sealed class YmsDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.VehicleId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasMany(x => x.History)
+                .WithOne(x => x.Appointment)
+                .HasForeignKey(x => x.AppointmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AppointmentHistoryItem>(entity =>
+        {
+            entity.ToTable("AppointmentHistoryItems");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.AppointmentId).IsRequired();
+            entity.Property(x => x.Status).IsRequired();
+            entity.Property(x => x.AtUtc).IsRequired();
+            entity.Property(x => x.Note).HasMaxLength(1000);
+            entity.Property(x => x.CreatedAtUtc).IsRequired();
+
+            entity.HasIndex(x => x.AppointmentId);
+            entity.HasIndex(x => x.AtUtc);
+            entity.HasIndex(x => x.Status);
         });
 
         modelBuilder.Entity<GateActivity>(entity =>
@@ -221,6 +291,29 @@ public sealed class YmsDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.DriverId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<VehicleAuditLog>(entity =>
+        {
+            entity.ToTable("VehicleAuditLogs");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.VehicleId).IsRequired();
+            entity.Property(x => x.ActorUserId).IsRequired();
+            entity.Property(x => x.ActorRole).IsRequired().HasMaxLength(50);
+            entity.Property(x => x.EventType).IsRequired().HasMaxLength(80);
+            entity.Property(x => x.DetailsJson);
+            entity.Property(x => x.OccurredAtUtc).IsRequired();
+            entity.Property(x => x.CreatedAtUtc).IsRequired();
+
+            entity.HasIndex(x => x.VehicleId);
+            entity.HasIndex(x => x.OccurredAtUtc);
+            entity.HasIndex(x => x.EventType);
+
+            entity.HasOne(x => x.Vehicle)
+                .WithMany()
+                .HasForeignKey(x => x.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

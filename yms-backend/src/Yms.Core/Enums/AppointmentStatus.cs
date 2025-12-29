@@ -6,5 +6,6 @@ public enum AppointmentStatus
     CheckedIn = 2,
     Completed = 3,
     Missed = 4,
-    Cancelled = 5
+    Cancelled = 5,
+    Rescheduled = 6
 }
