@@ -6,6 +6,7 @@ namespace Yms.Core.Entities;
 public sealed class Vehicle : EntityBase
 {
     public string VehicleNumber { get; set; } = string.Empty;
+    public string? LicensePlate { get; set; }
     public string? TrailerNumber { get; set; }
     public VehicleType Type { get; set; }
     public VehicleStatus Status { get; set; }

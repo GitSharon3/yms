@@ -147,6 +147,7 @@ partial class YmsDbContextModelSnapshot : ModelSnapshot
             b.Property<Guid?>("DriverId").HasColumnType("uuid");
             b.Property<string>("HoldReason").HasMaxLength(250).HasColumnType("character varying(250)");
             b.Property<bool>("IsOnHold").HasColumnType("boolean");
+            b.Property<string>("LicensePlate").HasMaxLength(30).HasColumnType("character varying(30)");
             b.Property<int>("Status").HasColumnType("integer");
             b.Property<int>("Type").HasColumnType("integer");
             b.Property<DateTime?>("UpdatedAt").HasColumnType("timestamp with time zone");

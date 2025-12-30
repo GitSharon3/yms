@@ -3,6 +3,7 @@ namespace Yms.Core.Dtos.Vehicles;
 public sealed record VehicleDto(
     Guid Id,
     string VehicleNumber,
+    string? LicensePlate,
     string? TrailerNumber,
     string Type,
     string Status,

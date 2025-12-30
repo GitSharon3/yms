@@ -118,6 +118,7 @@ public sealed class YmsDbContext : DbContext
             entity.HasKey(x => x.Id);
 
             entity.Property(x => x.VehicleNumber).IsRequired().HasMaxLength(40);
+            entity.Property(x => x.LicensePlate).HasMaxLength(30);
             entity.Property(x => x.TrailerNumber).HasMaxLength(60);
             entity.Property(x => x.Type).IsRequired();
             entity.Property(x => x.Status).IsRequired();

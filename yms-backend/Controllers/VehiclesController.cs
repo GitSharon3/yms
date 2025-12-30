@@ -28,6 +28,11 @@ public sealed class VehiclesController : ControllerBase
 
     public sealed record UpdateVehicleDriverUserRequestDto(Guid? UserId);
 
+    public sealed record UpdateVehicleRequestDto(
+        string? TrailerNumber,
+        string Type,
+        string? LicensePlate);
+
     public sealed record CreateVehicleRequestDto(
         string VehicleNumber,
         string? TrailerNumber,
@@ -60,6 +65,7 @@ public sealed class VehiclesController : ControllerBase
         {
             Id = Guid.NewGuid(),
             VehicleNumber = vn,
+            LicensePlate = string.IsNullOrWhiteSpace(request.LicensePlate) ? null : request.LicensePlate.Trim(),
             TrailerNumber = string.IsNullOrWhiteSpace(request.TrailerNumber) ? null : request.TrailerNumber.Trim(),
             Type = parsedType,
             Status = VehicleStatus.PreArrival,
@@ -179,6 +185,7 @@ public sealed class VehiclesController : ControllerBase
                 .Select(v => new VehicleDto(
                     v.Id,
                     v.VehicleNumber,
+                    v.LicensePlate,
                     v.TrailerNumber,
                     v.Type.ToString(),
                     v.Status.ToString(),
@@ -332,6 +339,62 @@ public sealed class VehiclesController : ControllerBase
         {
             return NotFound();
         }
+    }
+
+    [HttpPut("{id:guid}")]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.YardManager)}")]
+    public async Task<ActionResult<VehicleDto>> Update(Guid id, [FromBody] UpdateVehicleRequestDto request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Type)) return BadRequest(new { message = "Type is required" });
+
+        if (!Enum.TryParse<VehicleType>(request.Type.Trim(), true, out var parsedType))
+        {
+            return BadRequest(new { message = "Invalid vehicle type" });
+        }
+
+        var nowUtc = DateTime.UtcNow;
+        var actorUserId = GetActorUserId();
+        var actorRole = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+
+        var vehicle = await _db.Vehicles
+            .Include(v => v.Driver)
+            .Include(v => v.Dock)
+            .Include(v => v.YardSection)
+            .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
+
+        if (vehicle is null) return NotFound();
+
+        var fromTrailer = vehicle.TrailerNumber;
+        var fromType = vehicle.Type;
+        var fromLicensePlate = vehicle.LicensePlate;
+
+        vehicle.TrailerNumber = string.IsNullOrWhiteSpace(request.TrailerNumber) ? null : request.TrailerNumber.Trim();
+        vehicle.Type = parsedType;
+        vehicle.LicensePlate = string.IsNullOrWhiteSpace(request.LicensePlate) ? null : request.LicensePlate.Trim();
+        vehicle.UpdatedAt = nowUtc;
+
+        _db.VehicleAuditLogs.Add(new VehicleAuditLog
+        {
+            Id = Guid.NewGuid(),
+            VehicleId = id,
+            ActorUserId = actorUserId,
+            ActorRole = actorRole,
+            EventType = "VehicleUpdated",
+            DetailsJson = JsonSerializer.Serialize(new
+            {
+                fromTrailer,
+                toTrailer = vehicle.TrailerNumber,
+                fromType = fromType.ToString(),
+                toType = vehicle.Type.ToString(),
+                fromLicensePlate,
+                toLicensePlate = vehicle.LicensePlate
+            }),
+            OccurredAtUtc = nowUtc,
+            CreatedAtUtc = nowUtc
+        });
+
+        await _db.SaveChangesAsync(cancellationToken);
+        return Ok(await ToDtoAsync(vehicle, cancellationToken));
     }
 
     [HttpGet("{id:guid}/assignments")]
@@ -856,6 +919,7 @@ public sealed class VehiclesController : ControllerBase
         return new VehicleDto(
             v.Id,
             v.VehicleNumber,
+            v.LicensePlate,
             v.TrailerNumber,
             v.Type.ToString(),
             v.Status.ToString(),
