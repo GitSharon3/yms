@@ -1,3 +1,10 @@
+/**
+ * Vehicle Management Page Component
+ * 
+ * This component provides a comprehensive interface for managing vehicles in the YMS system.
+ * It includes functionality for viewing, creating, editing, deleting vehicles, and managing driver assignments.
+ */
+
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -10,23 +17,38 @@ import { DashboardCard } from '../Dashboard/components/DashboardCard';
 
 import './VehiclesPage.css';
 
+// Type aliases for API DTOs for cleaner code
 type Vehicle = vehiclesApi.VehicleDto;
 type DriverUser = usersApi.UserDto;
 
-type VehicleType = 'ContainerTruck' | 'FlatbedTruck' | 'ReeferTruck' | 'TankerTruck' | 'BoxTruck';
+// Supported vehicle types in the system
+export type VehicleType = 'ContainerTruck' | 'FlatbedTruck' | 'ReeferTruck' | 'TankerTruck' | 'BoxTruck';
 
-type VehicleCreateForm = {
+// Form data structure for creating a new vehicle
+export type VehicleCreateForm = {
   trailerNumber: string;
   type: VehicleType;
   licensePlate: string;
 };
 
-type VehicleEditForm = {
+// Form data structure for editing an existing vehicle
+export type VehicleEditForm = {
   trailerNumber: string;
   type: VehicleType;
   licensePlate: string;
 };
 
+/**
+ * Formats a vehicle number to the standard VEH-XXXXX format
+ * 
+ * @param vehicleNumber - The raw vehicle number string
+ * @returns Formatted vehicle ID (e.g., "VEH-00001") or "—" if empty
+ * 
+ * @example
+ * formatVehicleId("1") -> "VEH-00001"
+ * formatVehicleId("VEH-123") -> "VEH-00123"
+ * formatVehicleId("") -> "—"
+ */
 function formatVehicleId(vehicleNumber: string): string {
   const raw = (vehicleNumber || '').trim();
   if (!raw) return '—';
@@ -40,6 +62,17 @@ function formatVehicleId(vehicleNumber: string): string {
   return `VEH-${String(n).padStart(5, '0')}`;
 }
 
+/**
+ * Extracts the numeric sequence from a vehicle number
+ * 
+ * @param vehicleNumber - The vehicle number string
+ * @returns The numeric sequence as a number, or null if not found
+ * 
+ * @example
+ * extractVehicleSequence("VEH-00123") -> 123
+ * extractVehicleSequence("123") -> 123
+ * extractVehicleSequence("ABC") -> null
+ */
 function extractVehicleSequence(vehicleNumber: string): number | null {
   const raw = (vehicleNumber || '').trim();
   if (!raw) return null;
@@ -49,6 +82,16 @@ function extractVehicleSequence(vehicleNumber: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Generates the next vehicle ID based on existing vehicles
+ * 
+ * @param vehicles - Array of existing vehicles
+ * @returns The next vehicle ID in VEH-XXXXX format
+ * 
+ * @example
+ * // If vehicles have IDs VEH-00001, VEH-00002
+ * nextVehicleId(vehicles) -> "VEH-00003"
+ */
 function nextVehicleId(vehicles: Vehicle[]): string {
   const max = vehicles
     .map((v) => extractVehicleSequence(v.vehicleNumber))
@@ -57,6 +100,13 @@ function nextVehicleId(vehicles: Vehicle[]): string {
   return `VEH-${String(max + 1).padStart(5, '0')}`;
 }
 
+/**
+ * Modal shell component for consistent modal dialog layout
+ * 
+ * @param title - Modal title displayed in the header
+ * @param children - Modal content to be rendered in the body
+ * @param onClose - Callback function when modal should close
+ */
 function ModalShell({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
   return (
     <div className="vehModalOverlay" role="dialog" aria-modal="true">
@@ -73,10 +123,27 @@ function ModalShell({ title, children, onClose }: { title: string; children: Rea
   );
 }
 
+/**
+ * Utility function to safely convert string to lowercase
+ * 
+ * @param v - Input string that may be null or undefined
+ * @returns Lowercase trimmed string or empty string if input is falsy
+ */
 function safeLower(v: string | null | undefined) {
   return (v ?? '').trim().toLowerCase();
 }
 
+/**
+ * Extracts and formats user-friendly error messages from API responses
+ * 
+ * @param err - Error object from API call
+ * @returns Formatted error message string
+ * 
+ * Handles various error formats:
+ * - Error objects with message property
+ * - JSON strings with validation errors
+ * - Network errors
+ */
 function prettyErrorMessage(err: unknown): string {
   const fallback = err instanceof Error ? err.message : 'Request failed';
   const raw = err instanceof Error ? err.message : '';
@@ -96,12 +163,20 @@ function prettyErrorMessage(err: unknown): string {
       return [msg, extra].filter(Boolean).join(' ');
     }
   } catch {
-    // ignore parse errors
+    // ignore parse errors - return fallback message
   }
 
   return fallback;
 }
 
+/**
+ * Fetches all active driver users from the API with pagination
+ * 
+ * @returns Promise resolving to array of driver users
+ * 
+ * This function handles pagination automatically to retrieve all drivers,
+ * not just the first page. It includes safety limits to prevent infinite loops.
+ */
 async function fetchAllDriverUsers(): Promise<DriverUser[]> {
   const pageSize = 100;
   let page = 1;
@@ -110,73 +185,102 @@ async function fetchAllDriverUsers(): Promise<DriverUser[]> {
   while (true) {
     const res = await usersApi.getUsers({ page, pageSize, role: 'Driver', isActive: true, search: undefined });
     all.push(...res.items);
+    
+    // Stop if we've reached the last page
     if (page >= (res.totalPages || 0)) break;
+    
+    // Stop if we got fewer items than page size (indicates last page)
     if (res.items.length < pageSize) break;
+    
     page += 1;
+    
+    // Safety limit to prevent infinite loops
     if (page > 50) break;
   }
 
   return all;
 }
 
+/**
+ * Main Vehicles Page Component
+ * 
+ * Manages the complete vehicle lifecycle including CRUD operations,
+ * driver assignments, filtering, and search functionality.
+ */
 export function VehiclesPage() {
+  // Authentication and authorization
   const { user } = useAuth();
   const role = user?.role ?? '';
 
+  // Permission checks for different operations
   const canView = hasVehiclePermission(role, 'vehicles.view');
   const canManage = hasVehiclePermission(role, 'vehicles.assign');
 
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [driverUsers, setDriverUsers] = useState<DriverUser[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Core data state
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);           // All vehicles from API
+  const [driverUsers, setDriverUsers] = useState<DriverUser[]>([]);  // All available drivers
+  const [loading, setLoading] = useState(false);                    // Loading state for data fetch
+  const [error, setError] = useState<string | null>(null);          // Global error state
 
-  const [search, setSearch] = useState('');
+  // UI state for filtering and searching
+  const [search, setSearch] = useState('');                          // Search query string
+  const [typeFilter, setTypeFilter] = useState<'All' | VehicleType>('All'); // Vehicle type filter
 
-  const [typeFilter, setTypeFilter] = useState<'All' | VehicleType>('All');
-
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createBusy, setCreateBusy] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [createVehicleId, setCreateVehicleId] = useState('');
-  const [form, setForm] = useState<VehicleCreateForm>({
+  // Create vehicle modal state
+  const [createOpen, setCreateOpen] = useState(false);               // Modal visibility
+  const [createBusy, setCreateBusy] = useState(false);               // Form submission state
+  const [createError, setCreateError] = useState<string | null>(null); // Form validation errors
+  const [createVehicleId, setCreateVehicleId] = useState('');        // Auto-generated vehicle ID
+  const [form, setForm] = useState<VehicleCreateForm>({             // Create form data
     trailerNumber: '',
     type: 'ContainerTruck',
     licensePlate: '',
   });
 
-  const [editOpen, setEditOpen] = useState(false);
-  const [editBusy, setEditBusy] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
-  const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null);
-  const [editForm, setEditForm] = useState<VehicleEditForm>({ trailerNumber: '', type: 'ContainerTruck', licensePlate: '' });
+  // Edit vehicle modal state
+  const [editOpen, setEditOpen] = useState(false);                   // Modal visibility
+  const [editBusy, setEditBusy] = useState(false);                   // Form submission state
+  const [editError, setEditError] = useState<string | null>(null);   // Form validation errors
+  const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null); // Vehicle being edited
+  const [editForm, setEditForm] = useState<VehicleEditForm>({ trailerNumber: '', type: 'ContainerTruck', licensePlate: '' }); // Edit form data
 
-  const [viewOpen, setViewOpen] = useState(false);
-  const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
+  // View vehicle details modal state
+  const [viewOpen, setViewOpen] = useState(false);                   // Modal visibility
+  const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null); // Vehicle being viewed
 
-  const [rowMenuOpenForId, setRowMenuOpenForId] = useState<string | null>(null);
-  const [rowMenuPos, setRowMenuPos] = useState<{ left: number; top: number; openUp: boolean } | null>(null);
+  // Row menu (dropdown) state for table actions
+  const [rowMenuOpenForId, setRowMenuOpenForId] = useState<string | null>(null); // Which row's menu is open
+  const [rowMenuPos, setRowMenuPos] = useState<{ left: number; top: number; openUp: boolean } | null>(null); // Menu positioning
 
-  const [linkOpen, setLinkOpen] = useState(false);
-  const [linkBusy, setLinkBusy] = useState(false);
-  const [linkError, setLinkError] = useState<string | null>(null);
-  const [linkVehicle, setLinkVehicle] = useState<Vehicle | null>(null);
-  const [linkDriverUserId, setLinkDriverUserId] = useState('');
+  // Link driver modal state
+  const [linkOpen, setLinkOpen] = useState(false);                   // Modal visibility
+  const [linkBusy, setLinkBusy] = useState(false);                   // Form submission state
+  const [linkError, setLinkError] = useState<string | null>(null);   // Form validation errors
+  const [linkVehicle, setLinkVehicle] = useState<Vehicle | null>(null); // Vehicle being linked
+  const [linkDriverUserId, setLinkDriverUserId] = useState('');      // Selected driver ID
 
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [deleteVehicle, setDeleteVehicle] = useState<Vehicle | null>(null);
+  // Delete vehicle modal state
+  const [deleteOpen, setDeleteOpen] = useState(false);               // Modal visibility
+  const [deleteBusy, setDeleteBusy] = useState(false);               // Deletion progress state
+  const [deleteError, setDeleteError] = useState<string | null>(null); // Deletion error state
+  const [deleteVehicle, setDeleteVehicle] = useState<Vehicle | null>(null); // Vehicle being deleted
 
+  /**
+   * Refreshes vehicles and driver data from the API
+   * 
+   * Fetches both vehicles and drivers in parallel for optimal performance.
+   * Updates loading states and handles errors appropriately.
+   */
   async function refresh() {
     if (!canView) return;
 
     setLoading(true);
     setError(null);
     try {
+      // Fetch vehicles and drivers in parallel for better performance
       const [v, d] = await Promise.all([
-        vehiclesApi.getVehicles({ take: 250 }),
-        fetchAllDriverUsers(),
+        vehiclesApi.getVehicles({ take: 250 }),  // Get up to 250 vehicles
+        fetchAllDriverUsers(),                  // Get all active drivers
       ]);
       setVehicles(v);
       setDriverUsers(d);
@@ -187,17 +291,28 @@ export function VehiclesPage() {
     }
   }
 
+  // Load data on component mount and when permissions change
   useEffect(() => {
     void refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView]);
 
+  /**
+   * Event listener effect for row menu (dropdown) management
+   * 
+   * Handles closing the dropdown menu when:
+   * - User clicks outside the menu
+   * - User touches outside (mobile)
+   * - User presses Escape key
+   * - Window is scrolled or resized
+   */
   useEffect(() => {
     if (!rowMenuOpenForId) return;
 
     function onDocPointerDown(e: MouseEvent | TouchEvent) {
       const target = e.target as HTMLElement | null;
       if (!target) return;
+      // Don't close if clicking inside menu elements
       if (target.closest('.vehMenuWrap')) return;
       if (target.closest('.vehMenuFixed')) return;
       setRowMenuOpenForId(null);
@@ -211,10 +326,12 @@ export function VehiclesPage() {
       }
     }
 
+    // Add event listeners for menu closing
     document.addEventListener('mousedown', onDocPointerDown);
     document.addEventListener('touchstart', onDocPointerDown);
     document.addEventListener('keydown', onDocKeyDown);
 
+    // Close menu on scroll/resize to prevent misalignment
     function onWin() {
       setRowMenuOpenForId(null);
       setRowMenuPos(null);
@@ -222,6 +339,8 @@ export function VehiclesPage() {
 
     window.addEventListener('scroll', onWin, true);
     window.addEventListener('resize', onWin);
+    
+    // Cleanup event listeners on unmount or menu close
     return () => {
       document.removeEventListener('mousedown', onDocPointerDown);
       document.removeEventListener('touchstart', onDocPointerDown);
@@ -231,26 +350,47 @@ export function VehiclesPage() {
     };
   }, [rowMenuOpenForId]);
 
+  /**
+   * Utility function to format cell text for display
+   * 
+   * @param v - Input value that may be null or undefined
+   * @returns Trimmed string or empty string if input is falsy
+   */
   function cellText(v: string | null | undefined): string {
     const t = (v ?? '').trim();
     return t;
   }
 
+  /**
+   * Memoized filtered vehicles based on search query and type filter
+   * 
+   * Filters vehicles by:
+   * - Vehicle type (if not "All")
+   * - Search query across vehicle ID, license plate, trailer number, type, and driver name
+   */
   const filtered = useMemo(() => {
     const q = safeLower(search);
 
     return vehicles
+      // Filter by vehicle type
       .filter((v) => {
         if (typeFilter === 'All') return true;
         return String(v.type || '').trim() === typeFilter;
       })
+      // Filter by search query
       .filter((v) => {
         if (!q) return true;
+        // Search across multiple fields for comprehensive results
         const hay = [v.vehicleNumber, v.licensePlate ?? '', v.trailerNumber ?? '', v.type, v.driverName ?? ''].join(' ');
         return safeLower(hay).includes(q);
       });
   }, [search, typeFilter, vehicles]);
 
+  /**
+   * Memoized sorted driver options for dropdown selects
+   * 
+   * Sorts drivers alphabetically by full name or username for better UX.
+   */
   const driverOptions = useMemo(() => {
     return driverUsers
       .slice()
@@ -261,9 +401,16 @@ export function VehiclesPage() {
       });
   }, [driverUsers]);
 
+  /**
+   * Handles submission of the create vehicle form
+   * 
+   * Validates required fields, creates the vehicle via API,
+   * and updates the local state with the new vehicle.
+   */
   async function submitCreate() {
     setCreateError(null);
 
+    // Validate required license plate field
     if (!form.licensePlate.trim()) {
       setCreateError('License plate is required.');
       return;
@@ -271,17 +418,22 @@ export function VehiclesPage() {
 
     setCreateBusy(true);
     try {
+      // Prepare payload for API call
       const payload: vehiclesApi.CreateVehicleDto = {
         vehicleNumber: createVehicleId.trim(),
         trailerNumber: form.trailerNumber.trim() ? form.trailerNumber.trim() : null,
         type: form.type,
-        driverId: null,
+        driverId: null,  // Initially unassigned
         licensePlate: form.licensePlate.trim(),
       };
 
+      // Create vehicle via API
       const created = await vehiclesApi.createVehicle(payload);
 
+      // Update local state with new vehicle (add to beginning of list)
       setVehicles((prev) => [created, ...prev]);
+      
+      // Close modal and reset form
       setCreateOpen(false);
       setForm({ trailerNumber: '', type: 'ContainerTruck', licensePlate: '' });
     } catch (e) {
@@ -291,17 +443,28 @@ export function VehiclesPage() {
     }
   }
 
+  /**
+   * Opens the create vehicle modal and initializes form state
+   * 
+   * Generates the next vehicle ID and resets the form to default values.
+   */
   function openCreate() {
     setCreateError(null);
-    setCreateVehicleId(nextVehicleId(vehicles));
+    setCreateVehicleId(nextVehicleId(vehicles));  // Auto-generate next ID
     setForm({ trailerNumber: '', type: 'ContainerTruck', licensePlate: '' });
     setCreateOpen(true);
   }
 
+  /**
+   * Opens the edit vehicle modal and populates form with vehicle data
+   * 
+   * @param v - Vehicle to edit
+   */
   function openEdit(v: Vehicle) {
-    setRowMenuOpenForId(null);
+    setRowMenuOpenForId(null);  // Close any open row menu
     setEditVehicle(v);
     setEditError(null);
+    // Populate form with existing vehicle data
     setEditForm({
       trailerNumber: v.trailerNumber ?? '',
       type: (v.type as VehicleType) || 'ContainerTruck',
@@ -310,10 +473,17 @@ export function VehiclesPage() {
     setEditOpen(true);
   }
 
+  /**
+   * Handles submission of the edit vehicle form
+   * 
+   * Validates required fields, updates the vehicle via API,
+   * and updates the local state with the modified vehicle.
+   */
   async function submitEdit() {
     if (!editVehicle) return;
     setEditError(null);
 
+    // Validate required license plate field
     if (!editForm.licensePlate.trim()) {
       setEditError('License plate is required.');
       return;
@@ -321,12 +491,17 @@ export function VehiclesPage() {
 
     setEditBusy(true);
     try {
+      // Update vehicle via API
       const updated = await vehiclesApi.updateVehicle(editVehicle.id, {
         trailerNumber: editForm.trailerNumber.trim() ? editForm.trailerNumber.trim() : null,
         type: editForm.type,
         licensePlate: editForm.licensePlate.trim(),
       });
+      
+      // Update local state with modified vehicle
       setVehicles((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
+      
+      // Close modal and reset state
       setEditOpen(false);
       setEditVehicle(null);
     } catch (e) {
@@ -336,33 +511,58 @@ export function VehiclesPage() {
     }
   }
 
+  /**
+   * Opens the view vehicle details modal
+   * 
+   * @param v - Vehicle to view
+   */
   function openView(v: Vehicle) {
-    setRowMenuOpenForId(null);
+    setRowMenuOpenForId(null);  // Close any open row menu
     setViewVehicle(v);
     setViewOpen(true);
   }
 
+  /**
+   * Opens the link driver modal for vehicle assignment
+   * 
+   * @param v - Vehicle to link driver to
+   */
   function openLink(v: Vehicle) {
     setLinkVehicle(v);
-    setLinkDriverUserId('');
+    setLinkDriverUserId('');  // Reset driver selection
     setLinkError(null);
     setLinkOpen(true);
   }
 
+  /**
+   * Opens the delete vehicle confirmation modal
+   * 
+   * @param v - Vehicle to delete
+   */
   function openDelete(v: Vehicle) {
-    setRowMenuOpenForId(null);
+    setRowMenuOpenForId(null);  // Close any open row menu
     setDeleteVehicle(v);
     setDeleteError(null);
     setDeleteOpen(true);
   }
 
+  /**
+   * Handles vehicle deletion after confirmation
+   * 
+   * Deletes the vehicle via API and updates local state.
+   */
   async function submitDelete() {
     if (!deleteVehicle) return;
     setDeleteError(null);
     setDeleteBusy(true);
     try {
+      // Delete vehicle via API
       await vehiclesApi.deleteVehicle(deleteVehicle.id);
+      
+      // Remove vehicle from local state
       setVehicles((prev) => prev.filter((v) => v.id !== deleteVehicle.id));
+      
+      // Close modal and reset state
       setDeleteOpen(false);
       setDeleteVehicle(null);
     } catch (e) {
@@ -372,16 +572,27 @@ export function VehiclesPage() {
     }
   }
 
+  /**
+   * Handles driver assignment/unassignment to a vehicle
+   * 
+   * Updates the vehicle's driver assignment via API and local state.
+   * Can assign a driver or remove assignment (empty selection).
+   */
   async function submitLink() {
     if (!linkVehicle) return;
 
     setLinkError(null);
     setLinkBusy(true);
     try {
+      // Update vehicle driver assignment via API
       const updated = await vehiclesApi.updateVehicleDriverUser(linkVehicle.id, {
-        userId: linkDriverUserId.trim() ? linkDriverUserId.trim() : null,
+        userId: linkDriverUserId.trim() ? linkDriverUserId.trim() : null,  // null = unassign
       });
+      
+      // Update local state with modified vehicle
       setVehicles((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
+      
+      // Close modal and reset state
       setLinkOpen(false);
       setLinkVehicle(null);
     } catch (e) {
@@ -704,7 +915,7 @@ export function VehiclesPage() {
               <option value="">No driver</option>
               {driverOptions.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {u.fullName || u.username} ({u.phone || '—'})
+                  {u.fullName || u.username}
                 </option>
               ))}
             </select>
